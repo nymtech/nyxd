@@ -1,60 +1,15 @@
-# Wasm Zone
+# Nyx Zone
 
-[![CircleCI](https://circleci.com/gh/CosmWasm/wasmd/tree/master.svg?style=shield)](https://circleci.com/gh/CosmWasm/wasmd/tree/master)
-[![codecov](https://codecov.io/gh/cosmwasm/wasmd/branch/master/graph/badge.svg)](https://codecov.io/gh/cosmwasm/wasmd)
-[![Go Report Card](https://goreportcard.com/badge/github.com/CosmWasm/wasmd)](https://goreportcard.com/report/github.com/CosmWasm/wasmd)
-[![license](https://img.shields.io/github/license/CosmWasm/wasmd.svg)](https://github.com/CosmWasm/wasmd/blob/master/LICENSE)
-[![LoC](https://tokei.rs/b1/github/CosmWasm/wasmd)](https://github.com/CosmWasm/wasmd)
-<!-- [![GolangCI](https://golangci.com/badges/github.com/CosmWasm/wasmd.svg)](https://golangci.com/r/github.com/CosmWasm/wasmd) -->
+This repository hosts `nyxd`, a Cosmos zone with wasm smart contracts enabled. In the future, `nyxd`'s smart contracts will include extensions making it easy to use Coconut credentials. 
 
-This repository hosts `Wasmd`, the first implementation of a cosmos zone with wasm smart contracts enabled.
-
-This code was forked from the `cosmos/gaia` repository as a basis and then we added `x/wasm` and cleaned up 
-many gaia-specific files. However, the `wasmd` binary should function just like `gaiad` except for the
-addition of the `x/wasm` module.
+This code was forked from the `cosmwasm/wasmd` repository, which was itself forked from `cosmos/gaiad` as a basis by the CosmWasm project. They then added `x/wasm` and cleaned up 
+many gaia-specific files. However, the `nyxd` binary should function just like `gaiad` except for the
+addition of the `x/wasm` module. 
 
 **Note**: Requires [Go 1.18+](https://golang.org/dl/)
 
-For critical security issues & disclosure, see [SECURITY.md](SECURITY.md).
-## Compatibility with CosmWasm contracts
+As this is essentially a no-modifications fork of `wasmd`, security issues are best handled upstream. For critical security issues & disclosure, see their [SECURITY.md](https://github.com/CosmWasm/wasmd/blob/main/SECURITY.md).
 
-## Compatibility
-
-A VM can support one or more contract-VM interface versions. The interface
-version is communicated by the contract via a Wasm export. This is the current
-compatibility list:
-
-| wasmd | wasmvm       | cosmwasm-vm | cosmwasm-std |
-| ----- | ------------ | ----------- | ------------ |
-| 0.26  | 1.0.0-beta10 |             | 1.0          |
-| 0.25  | 1.0.0-beta10 |             | 1.0          |
-| 0.24  | 1.0.0-beta7  | 1.0.0-beta6 | 1.0          |
-| 0.23  |              | 1.0.0-beta5 | 1.0          |
-| 0.22  |              | 1.0.0-beta5 | 1.0          |
-| 0.21  |              | 1.0.0-beta2 | 1.0          |
-| 0.20  |              | 1.0.0-beta  | 1.0          |
-| 0.19  |              | 0.16        | 0.16         |
-| 0.18  |              | 0.16        | 0.16         |
-| 0.17  |              | 0.14        | 0.14         |
-| 0.16  |              | 0.14        | 0.14         |
-| 0.15  |              | 0.13        | 0.11-0.13    |
-| 0.14  |              | 0.13        | 0.11-0.13    |
-| 0.13  |              | 0.12        | 0.11-0.13    |
-| 0.12  |              | 0.12        | 0.11-0.13    |
-| 0.11  |              | 0.11        | 0.11-0.13    |
-| 0.10  |              | 0.10        | 0.10         |
-| 0.9   |              | 0.9         | 0.9          |
-| 0.8   |              | 0.8         | 0.8          |
-
-Note: `cosmwasm_std v1.0` means it supports contracts compiled by any `v1.0.0-betaX` or `1.0.x`.
-It will also run contracts compiled with 1.x assuming they don't opt into any newer features.
-The 1.x cosmwasm_vm will support all contracts with 1.0 <= version <= 1.x. 
-
-Note that `cosmwasm-std` version defines which contracts are compatible with this system. The wasm code uploaded must
-have been compiled with one of the supported `cosmwasm-std` versions, or will be rejeted upon upload (with some error
-message about "contract too old?" or "contract too new?"). `cosmwasm-vm` version defines the runtime used. It is a
-breaking change to switch runtimes (you will need to organize a chain upgrade). As of `cosmwasm-vm 0.13` we are
-using [wasmer](https://github.com/wasmerio/wasmer/) 1.0, which is significantly more performant than the older versions.
 
 ## Supported Systems
 
@@ -78,11 +33,6 @@ and have not yet gone through and audit of this codebase. Note that the
 [CosmWasm smart contract framework](https://github.com/CosmWasm/cosmwasm) used by `wasmd` is in a 1.0 release candidate
 as of March 2022, with stability guarantee and addressing audit results.
 
-As of `wasmd` 0.22, we will work to provide upgrade paths *for this module* for projects running a non-forked
-version on their live networks. If there are Cosmos SDK upgrades, you will have to run their migration code
-for their modules. If we change the internal storage of `x/wasm` we will provide a function to migrate state that
-can be called by an `x/upgrade` handler.
-
 The APIs are pretty stable, but we cannot guarantee their stability until we reach v1.0.
 However, we will provide a way for you to hard-fork your way to v1.0.
 
@@ -101,80 +51,7 @@ your use case.
 
 ## Quick Start
 
-```
-make install
-make test
-```
-if you are using a linux without X or headless linux, look at [this article](https://ahelpme.com/linux/dbusexception-could-not-get-owner-of-name-org-freedesktop-secrets-no-such-name) or [#31](https://github.com/CosmWasm/wasmd/issues/31#issuecomment-577058321).
-
-To set up a single node testnet, [look at the deployment documentation](./docs/deploy-testnet.md).
-
-If you want to deploy a whole cluster, [look at the network scripts](./networks/README.md).
-
-## Protobuf
-Generate protobuf
-```shell script
-make proto-gen
-```
-The generators are executed within a Docker [container](./contrib/prototools-docker), now.
-
-## Dockerized
-
-We provide a docker image to help with test setups. There are two modes to use it
-
-Build: `docker build -t cosmwasm/wasmd:latest .`  or pull from dockerhub
-
-### Dev server
-
-Bring up a local node with a test account containing tokens
-
-This is just designed for local testing/CI - do not use these scripts in production.
-Very likely you will assign tokens to accounts whose mnemonics are public on github.
-
-```sh
-docker volume rm -f wasmd_data
-
-# pass password (one time) as env variable for setup, so we don't need to keep typing it
-# add some addresses that you have private keys for (locally) to give them genesis funds
-docker run --rm -it \
-    -e PASSWORD=xxxxxxxxx \
-    --mount type=volume,source=wasmd_data,target=/root \
-    cosmwasm/wasmd:latest /opt/setup_wasmd.sh cosmos1pkptre7fdkl6gfrzlesjjvhxhlc3r4gmmk8rs6
-
-# This will start both wasmd and rest-server, both are logged
-docker run --rm -it -p 26657:26657 -p 26656:26656 -p 1317:1317 \
-    --mount type=volume,source=wasmd_data,target=/root \
-    cosmwasm/wasmd:latest /opt/run_wasmd.sh
-```
-
-### CI
-
-For CI, we want to generate a template one time and save to disk/repo. Then we can start a chain copying the initial state, but not modifying it. This lets us get the same, fresh start every time.
-
-```sh
-# Init chain and pass addresses so they are non-empty accounts
-rm -rf ./template && mkdir ./template
-docker run --rm -it \
-    -e PASSWORD=xxxxxxxxx \
-    --mount type=bind,source=$(pwd)/template,target=/root \
-    cosmwasm/wasmd:latest /opt/setup_wasmd.sh cosmos1pkptre7fdkl6gfrzlesjjvhxhlc3r4gmmk8rs6
-
-sudo chown -R $(id -u):$(id -g) ./template
-
-# FIRST TIME
-# bind to non-/root and pass an argument to run.sh to copy the template into /root
-# we need wasmd_data volume mount not just for restart, but also to view logs
-docker volume rm -f wasmd_data
-docker run --rm -it -p 26657:26657 -p 26656:26656 -p 9090:9090 \
-    --mount type=bind,source=$(pwd)/template,target=/template \
-    --mount type=volume,source=wasmd_data,target=/root \
-    cosmwasm/wasmd:latest /opt/run_wasmd.sh /template
-
-# RESTART CHAIN with existing state
-docker run --rm -it -p 26657:26657 -p 26656:26656 -p 1317:1317 \
-    --mount type=volume,source=wasmd_data,target=/root \
-    cosmwasm/wasmd:latest /opt/run_wasmd.sh
-```
+See the Nym [validator docs](https://nymtech.net/docs/stable/run-nym-nodes/nodes/validators) for setup instructions.
 
 ## Runtime flags
 
@@ -183,7 +60,6 @@ compile-time flags. This enables us to avoid copying a new binary directory over
 to the configuration.
 
 Available flags:
-
  
 * `-X github.com/CosmWasm/wasmd/app.NodeDir=.corald` - set the config/data directory for the node (default `~/.wasmd`)
 * `-X github.com/CosmWasm/wasmd/app.Bech32Prefix=coral` - set the bech32 prefix for all accounts (default `wasm`)
