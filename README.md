@@ -1,23 +1,14 @@
+# Nyx Zone
 
-# Wasm Zone
+This repository hosts `nyxd`, a Cosmos zone with wasm smart contracts enabled. In the future, `nyxd`'s smart contracts will include extensions making it easy to use Coconut credentials. 
 
-[![CircleCI](https://circleci.com/gh/CosmWasm/wasmd/tree/main.svg?style=shield)](https://circleci.com/gh/CosmWasm/wasmd/tree/main)
-[![codecov](https://codecov.io/gh/cosmwasm/wasmd/branch/main/graph/badge.svg)](https://codecov.io/gh/cosmwasm/wasmd)
-[![Go Report Card](https://goreportcard.com/badge/github.com/CosmWasm/wasmd)](https://goreportcard.com/report/github.com/CosmWasm/wasmd)
-[![license](https://img.shields.io/github/license/CosmWasm/wasmd.svg)](https://github.com/CosmWasm/wasmd/blob/main/LICENSE)
-[![LoC](https://tokei.rs/b1/github/CosmWasm/wasmd)](https://github.com/CosmWasm/wasmd)
-<!-- [![GolangCI](https://golangci.com/badges/github.com/CosmWasm/wasmd.svg)](https://golangci.com/r/github.com/CosmWasm/wasmd) -->
-
-This repository hosts `Wasmd`, the first implementation of a cosmos zone with wasm smart contracts enabled.
-
-This code was forked from the `cosmos/gaia` repository as a basis and then we added `x/wasm` and cleaned up 
-many gaia-specific files. However, the `wasmd` binary should function just like `gaiad` except for the
-addition of the `x/wasm` module.
+This code was forked from the `cosmwasm/wasmd` repository, which was itself forked from `cosmos/gaiad` as a basis by the CosmWasm project. They then added `x/wasm` and cleaned up 
+many gaia-specific files. However, the `nyxd` binary should function just like `gaiad` except for the
+addition of the `x/wasm` module. 
 
 **Note**: Requires [Go 1.19+](https://golang.org/dl/)
 
-For critical security issues & disclosure, see [SECURITY.md](SECURITY.md).
-## Compatibility with CosmWasm contracts
+As this is essentially a no-modifications fork of `wasmd`, security issues are best handled upstream. For critical security issues & disclosure, see their [SECURITY.md](https://github.com/CosmWasm/wasmd/blob/main/SECURITY.md).
 
 ## Compatibility
 
@@ -85,11 +76,6 @@ and have not yet gone through and audit of this codebase. Note that the
 [CosmWasm smart contract framework](https://github.com/CosmWasm/cosmwasm) used by `wasmd` is in a 1.0 release candidate
 as of March 2022, with stability guarantee and addressing audit results.
 
-As of `wasmd` 0.22, we will work to provide upgrade paths *for this module* for projects running a non-forked
-version on their live networks. If there are Cosmos SDK upgrades, you will have to run their migration code
-for their modules. If we change the internal storage of `x/wasm` we will provide a function to migrate state that
-can be called by an `x/upgrade` handler.
-
 The APIs are pretty stable, but we cannot guarantee their stability until we reach v1.0.
 However, we will provide a way for you to hard-fork your way to v1.0.
 
@@ -107,6 +93,8 @@ a relatively minor change to wasmd but would currently require a fork. Please op
 your use case.
 
 ## Quick Start
+
+See the Nym [validator docs](https://nymtech.net/docs/stable/run-nym-nodes/nodes/validators) for setup instructions.
 
 ```
 make install
