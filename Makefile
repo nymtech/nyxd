@@ -12,7 +12,7 @@ SIMAPP = ./app
 DOCKER := $(shell which docker)
 BUF_IMAGE=bufbuild/buf@sha256:3cb1f8a4b48bd5ad8f09168f10f607ddc318af202f5c057d52a45216793d85e5 #v1.4.0
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(BUF_IMAGE)
-HTTPS_GIT := https://github.com/CosmWasm/wasmd.git
+HTTPS_GIT := https://github.com/nymtech/nyxd.git
 
 export GO111MODULE = on
 
@@ -55,18 +55,22 @@ build_tags_comma_sep := $(subst $(empty),$(comma),$(build_tags))
 
 # process linker flags
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=wasm \
-		  -X github.com/cosmos/cosmos-sdk/version.AppName=wasmd \
-		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
-		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X github.com/CosmWasm/wasmd/app.Bech32Prefix=wasm \
-		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
+NYM_APP_NAME=nyxd
+BECH32_PREFIX=n
+
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=${NYM_APP_NAME} \
+                  -X github.com/cosmos/cosmos-sdk/version.AppName=${NYM_APP_NAME} \
+                  -X github.com/CosmWasm/wasmd/app.NodeDir=.${NYM_APP_NAME} \
+                  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
+                  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
+                  -X github.com/CosmWasm/wasmd/app.Bech32Prefix=${BECH32_PREFIX} \
+                  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
 
 ifeq ($(WITH_CLEVELDB),yes)
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
 endif
 ifeq ($(LINK_STATICALLY),true)
-	ldflags += -linkmode=external -extldflags "-Wl,-z,muldefs -static"
+        ldflags += -linkmode=external -extldflags "-Wl,-z,muldefs -static"
 endif
 ldflags += $(LDFLAGS)
 ldflags := $(strip $(ldflags))
@@ -80,42 +84,42 @@ all: install lint test
 
 build: go.sum
 ifeq ($(OS),Windows_NT)
-	exit 1
+        exit 1
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/wasmd ./cmd/wasmd
+        go build -mod=readonly $(BUILD_FLAGS) -o build/${NYM_APP_NAME} ./cmd/${NYM_APP_NAME}
 endif
 
 build-contract-tests-hooks:
 ifeq ($(OS),Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests.exe ./cmd/contract_tests
+        go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests.exe ./cmd/contract_tests
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests ./cmd/contract_tests
+        go build -mod=readonly $(BUILD_FLAGS) -o build/contract_tests ./cmd/contract_tests
 endif
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/wasmd
+        go install -mod=readonly $(BUILD_FLAGS) ./cmd/${NYM_APP_NAME}
 
 ########################################
 ### Tools & dependencies
 
 go-mod-cache: go.sum
-	@echo "--> Download go modules to local cache"
-	@go mod download
+        @echo "--> Download go modules to local cache"
+        @go mod download
 
 go.sum: go.mod
-	@echo "--> Ensure dependencies have not been modified"
-	@go mod verify
+        @echo "--> Ensure dependencies have not been modified"
+        @go mod verify
 
 draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz
 	go install github.com/RobotsAndPencils/goviz@latest
-	@goviz -i ./cmd/wasmd -d 2 | dot -Tpng -o dependency-graph.png
+	@goviz -i ./cmd/${NYM_APP_NAME} -d 2 | dot -Tpng -o dependency-graph.png
 
 clean:
-	rm -rf snapcraft-local.yaml build/
+        rm -rf snapcraft-local.yaml build/
 
 distclean: clean
-	rm -rf vendor/
+        rm -rf vendor/
 
 ########################################
 ### Testing
@@ -125,24 +129,24 @@ test: test-unit
 test-all: check test-race test-cover
 
 test-unit:
-	@VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
+        @VERSION=$(VERSION) go test -mod=readonly -tags='ledger test_ledger_mock' ./...
 
 test-race:
-	@VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
+        @VERSION=$(VERSION) go test -mod=readonly -race -tags='ledger test_ledger_mock' ./...
 
 test-cover:
-	@go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
+        @go test -mod=readonly -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -tags='ledger test_ledger_mock' ./...
 
 benchmark:
-	@go test -mod=readonly -bench=. ./...
+        @go test -mod=readonly -bench=. ./...
 
 test-sim-import-export: runsim
-	@echo "Running application import/export simulation. This may take several minutes..."
-	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 50 5 TestAppImportExport
+        @echo "Running application import/export simulation. This may take several minutes..."
+        @$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 50 5 TestAppImportExport
 
 test-sim-multi-seed-short: runsim
-	@echo "Running short multi-seed application simulation. This may take awhile!"
-	@$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 50 10 TestFullAppSimulation
+        @echo "Running short multi-seed application simulation. This may take awhile!"
+        @$(BINDIR)/runsim -Jobs=4 -SimAppPkg=$(SIMAPP) -ExitOnFail 50 10 TestFullAppSimulation
 
 ###############################################################################
 ###                                Linting                                  ###
@@ -171,8 +175,8 @@ PROTO_FORMATTER_IMAGE=tendermintdev/docker-build-proto@sha256:aabcfe2fc19c31c0f1
 proto-all: proto-format proto-lint proto-gen format
 
 proto-gen:
-	@echo "Generating Protobuf files"
-	$(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(PROTO_BUILDER_IMAGE) sh ./scripts/protocgen.sh
+        @echo "Generating Protobuf files"
+        $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace $(PROTO_BUILDER_IMAGE) sh ./scripts/protocgen.sh
 
 proto-format:
 	@echo "Formatting Protobuf files"
@@ -181,15 +185,15 @@ proto-format:
 	find ./ -name *.proto -exec clang-format -i {} \;
 
 proto-swagger-gen:
-	@./scripts/protoc-swagger-gen.sh
+        @./scripts/protoc-swagger-gen.sh
 
 proto-lint:
-	@$(DOCKER_BUF) lint --error-format=json
+        @$(DOCKER_BUF) lint --error-format=json
 
 proto-check-breaking:
-	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=main
+	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=master
 
 .PHONY: all install install-debug \
-	go-mod-cache draw-deps clean build format \
-	test test-all test-build test-cover test-unit test-race \
-	test-sim-import-export \
+        go-mod-cache draw-deps clean build format \
+        test test-all test-build test-cover test-unit test-race \
+        test-sim-import-export \
