@@ -8,7 +8,7 @@ addition of the `x/wasm` module.
 
 **Note**: Requires [Go 1.19+](https://golang.org/dl/)
 
-As this is essentially a no-modifications fork of `wasmd`, security issues are best handled upstream. For critical security issues & disclosure, see their [SECURITY.md](https://github.com/CosmWasm/wasmd/blob/main/SECURITY.md).
+As this is essentially a no-modifications fork of `wasmd`, security issues are best handled upstream. For critical security issues & disclosure, see the `cosmwasm/wasmd` [SECURITY.md](https://github.com/CosmWasm/wasmd/blob/main/SECURITY.md).
 
 ## Compatibility
 
