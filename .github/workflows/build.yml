@@ -33,13 +33,29 @@ jobs:
           -X github.com/cosmos/cosmos-sdk/version.Commit=$GITHUB_SHA \
           -X github.com/CosmWasm/wasmd/app.Bech32Prefix=$BECH32_PREFIX \
           -X \"github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger\"" -trimpath ./cmd/wasmd
-          
+
+      - name: Copy libs (linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |-
           WASMVM_SO=$(ldd build/nyxd | grep libwasmvm.so | awk '{ print $3 }')
           cp $WASMVM_SO build
-          
+
+      - name: Copy libs (MacOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |-
+          WASMVM_SO=$(otool -l nyxd | grep RPATH -A2 | tail -n 1 | awk '{ print $2 }')
+          cp $WASMVM_SO/libwasmvm.* build
+
+      - name: Show build output
           ls -lah build
 
       - uses: actions/upload-artifact@v3
         with:
-          name: nyxd-${{ runner.os }}
+          name: nyxd-${{ matrix.os }}
           path: build/*
+
+      - name: Upload to release based on tag name
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release'
+        with:
+          files: build/*
