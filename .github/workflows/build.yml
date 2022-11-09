@@ -12,7 +12,6 @@ jobs:
     env:
       BECH32_PREFIX: n
       WASMD_VERSION: v0.26.1
-      COSMOS_SDK_VERSION: ${{ env.GITHUB_SHA }}
       APP_NAME: nyxd
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +30,7 @@ jobs:
           -X github.com/cosmos/cosmos-sdk/version.AppName=$APP_NAME \
           -X github.com/CosmWasm/wasmd/app.NodeDir=.nyxd \
           -X github.com/cosmos/cosmos-sdk/version.Version=$WASMD_VERSION} \
-          -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT_HASH \
+          -X github.com/cosmos/cosmos-sdk/version.Commit=$GITHUB_SHA \
           -X github.com/CosmWasm/wasmd/app.Bech32Prefix=$BECH32_PREFIX \
           -X \"github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger\"" -trimpath ./cmd/wasmd
           
