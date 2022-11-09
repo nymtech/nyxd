@@ -14,7 +14,6 @@ jobs:
     env:
       BECH32_PREFIX: n
       WASMD_VERSION: v0.26.1
-      COSMOS_SDK_VERSION: ${{ env.GITHUB_SHA }}
       APP_NAME: nyxd
     steps:
       - uses: actions/checkout@v3
