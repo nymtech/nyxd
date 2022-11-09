@@ -1,0 +1,47 @@
+name: Build validator binary
+
+on:
+  workflow_dispatch:
+
+env:
+  BECH32_PREFIX: n
+  WASMD_VERSION: v0.26.1
+  COSMOS_SDK_VERSION: ${{env.GITHUB_SHA}}
+  APP_NAME: nyxd
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-20.04, macos-12]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: Build
+        run: |-
+          mkdir build
+          
+          go build -o ./build/$APP_NAME -mod=readonly -tags "netgo,ledger" -ldflags "\
+          -X github.com/cosmos/cosmos-sdk/version.Name=$APP_NAME \
+          -X github.com/cosmos/cosmos-sdk/version.AppName=$APP_NAME \
+          -X github.com/CosmWasm/wasmd/app.NodeDir=.nyxd \
+          -X github.com/cosmos/cosmos-sdk/version.Version=$WASMD_VERSION} \
+          -X github.com/cosmos/cosmos-sdk/version.Commit=$COMMIT_HASH \
+          -X github.com/CosmWasm/wasmd/app.Bech32Prefix=$BECH32_PREFIX \
+          -X \"github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger\"" -trimpath ./cmd/wasmd
+          
+          WASMVM_SO=$(ldd build/nyxd | grep libwasmvm.so | awk '{ print $3 }')
+          cp $WASMVM_SO build
+          
+          ls -lah build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: nyxd-${{ runner.os }}
+          path: build/*
