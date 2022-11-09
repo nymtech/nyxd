@@ -47,6 +47,7 @@ jobs:
           cp $WASMVM_SO/libwasmvm.* build
 
       - name: Show build output
+        run: |-
           ls -lah build
 
       - uses: actions/upload-artifact@v3
