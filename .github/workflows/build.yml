@@ -51,25 +51,19 @@ jobs:
       - name: Show build output
         run: |-
           ls -lah build
+          
 
       - uses: actions/upload-artifact@v3
         with:
           name: nyxd-${{ matrix.os }}
           path: build/*
 
-      - name: Download artifact from workflow
+      - name: Create tarball
         if: github.event_name == 'release'
-        uses: actions/download-artifact@v3
-        with:
-          name: nyxd-${{ matrix.os }}
-          path: temp
-
-      - name: Display structure of downloaded files
-        run: ls -R
-        working-directory: temp
+        run: tar -czvf nyxd-${{ matrix.os }}.tar.gz build/*
 
       - name: Upload to release based on tag name
         uses: softprops/action-gh-release@v1
         if: github.event_name == 'release'
         with:
-          files: nyxd-${{ matrix.os }}
+          files: nyxd-${{ matrix.os }}.tar.gz
