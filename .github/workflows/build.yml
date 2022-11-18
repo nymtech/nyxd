@@ -57,8 +57,14 @@ jobs:
           name: nyxd-${{ matrix.os }}
           path: build/*
 
+      - name: Download artifact from workflow
+        if: github.event_name == 'release'
+        uses: actions/download-artifact@v3
+        with:
+          name: nyxd-${{ matrix.os }}
+
       - name: Upload to release based on tag name
         uses: softprops/action-gh-release@v1
-        if: github.event_name == 'release' && matrix.os == 'ubuntu-22.04'
+        if: github.event_name == 'release'
         with:
-          files: build/*
+          files: nyxd-${{ matrix.os }}
