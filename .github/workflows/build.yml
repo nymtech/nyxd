@@ -1,0 +1,64 @@
+name: Build validator binary
+
+on:
+  workflow_dispatch:
+  release:
+    types: [created]  
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-20.04, macos-12]
+    runs-on: ${{ matrix.os }}
+    env:
+      BECH32_PREFIX: n
+      WASMD_VERSION: v0.26.1
+      APP_NAME: nyxd
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+
+      - name: Build
+        run: |-
+          mkdir build
+          
+          go build -o ./build/$APP_NAME -mod=readonly -tags "netgo,ledger" -ldflags "\
+          -X github.com/cosmos/cosmos-sdk/version.Name=$APP_NAME \
+          -X github.com/cosmos/cosmos-sdk/version.AppName=$APP_NAME \
+          -X github.com/CosmWasm/wasmd/app.NodeDir=.nyxd \
+          -X github.com/cosmos/cosmos-sdk/version.Version=$WASMD_VERSION} \
+          -X github.com/cosmos/cosmos-sdk/version.Commit=$GITHUB_SHA \
+          -X github.com/CosmWasm/wasmd/app.Bech32Prefix=$BECH32_PREFIX \
+          -X \"github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger\"" -trimpath ./cmd/wasmd
+
+      - name: Copy libs (linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |-
+          WASMVM_SO=$(ldd build/nyxd | grep libwasmvm.so | awk '{ print $3 }')
+          cp $WASMVM_SO build
+
+      - name: Copy libs (MacOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |-
+          WASMVM_SO=$(otool -l build/nyxd | grep RPATH -A2 | tail -n 1 | awk '{ print $2 }')
+          cp $WASMVM_SO/libwasmvm.* build
+
+      - name: Show build output
+        run: |-
+          ls -lah build
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: nyxd-${{ matrix.os }}
+          path: build/*
+
+      - name: Upload to release based on tag name
+        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release' && matrix.os == 'ubuntu-22.04'
+        with:
+          files: build/*
