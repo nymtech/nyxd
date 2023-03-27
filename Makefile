@@ -55,12 +55,12 @@ build_tags_comma_sep := $(subst $(empty),$(comma),$(build_tags))
 
 # process linker flags
 
-NYM_APP_NAME=nyxd
+NYX_APP_NAME=nyxd
 BECH32_PREFIX=n
 
-ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=${NYM_APP_NAME} \
-		  -X github.com/cosmos/cosmos-sdk/version.AppName=${NYM_APP_NAME} \
-                  -X github.com/CosmWasm/wasmd/app.NodeDir=.${NYM_APP_NAME} \
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=${NYX_APP_NAME} \
+		  -X github.com/cosmos/cosmos-sdk/version.AppName=${NYX_APP_NAME} \
+                  -X github.com/CosmWasm/wasmd/app.NodeDir=.${NYX_APP_NAME} \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X github.com/CosmWasm/wasmd/app.Bech32Prefix=${BECH32_PREFIX} \
@@ -86,7 +86,7 @@ build: go.sum
 ifeq ($(OS),Windows_NT)
 	exit 1
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/${NYM_APP_NAME} ./cmd/${NYM_APP_NAME}
+	go build -mod=readonly $(BUILD_FLAGS) -o build/${NYX_APP_NAME} ./cmd/${NYX_APP_NAME}
 endif
 
 build-contract-tests-hooks:
@@ -97,7 +97,7 @@ else
 endif
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/${NYM_APP_NAME}
+	go install -mod=readonly $(BUILD_FLAGS) ./cmd/${NYX_APP_NAME}
 
 ########################################
 ### Tools & dependencies
