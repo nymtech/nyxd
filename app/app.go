@@ -419,6 +419,12 @@ func NewWasmApp(
 		app.BaseApp,
 	)
 
+	app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			// transfer module consensus version has been bumped to 2
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.StakingKeeper = *stakingKeeper.SetHooks(
