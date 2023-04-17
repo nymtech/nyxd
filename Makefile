@@ -55,8 +55,8 @@ build_tags_comma_sep := $(subst $(empty),$(comma),$(build_tags))
 
 # process linker flags
 
-NYX_APP_NAME=nyxd
-BECH32_PREFIX=n
+NYX_APP_NAME ?= nyxd
+BECH32_PREFIX ?= n
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=${NYX_APP_NAME} \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=${NYX_APP_NAME} \
