@@ -979,4 +979,8 @@ func (app *WasmApp) registerUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler("v0.30.1", func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 	})
+
+	app.UpgradeKeeper.SetUpgradeHandler("v0.30.2", func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+	})
 }
