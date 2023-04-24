@@ -9,7 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/libs/rand"
 
-	"github.com/nymtech/nyxd/x/wasm/types"
+	"github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
 var _ types.WasmerEngine = &MockWasmer{}

@@ -12,7 +12,7 @@ import (
 
 	wasmvm "github.com/CosmWasm/wasmvm"
 
-	"github.com/nymtech/nyxd/x/wasm/keeper/wasmtesting"
+	"github.com/CosmWasm/wasmd/x/wasm/keeper/wasmtesting"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nymtech/nyxd/x/wasm/types"
+	"github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
 func TestStoreCodeProposal(t *testing.T) {

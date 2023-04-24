@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/cosmos/cosmos-sdk/std"
 
-	"github.com/nymtech/nyxd/app/params"
+	"github.com/CosmWasm/wasmd/app/params"
 )
 
 // MakeEncodingConfig creates a new EncodingConfig with all modules registered

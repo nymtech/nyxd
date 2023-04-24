@@ -18,7 +18,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/nymtech/nyxd/x/wasm"
+	"github.com/CosmWasm/wasmd/x/wasm"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"

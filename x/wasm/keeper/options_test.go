@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nymtech/nyxd/x/wasm/keeper/wasmtesting"
-	"github.com/nymtech/nyxd/x/wasm/types"
+	"github.com/CosmWasm/wasmd/x/wasm/keeper/wasmtesting"
+	"github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
 func TestConstructorOptions(t *testing.T) {

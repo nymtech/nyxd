@@ -1,4 +1,4 @@
-module github.com/nymtech/nyxd
+module github.com/CosmWasm/wasmd
 
 go 1.16
 
