@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/nymtech/nyxd/x/wasm/types"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"

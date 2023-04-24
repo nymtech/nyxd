@@ -34,9 +34,9 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/version"
 
-	"github.com/CosmWasm/wasmd/app"
-	"github.com/CosmWasm/wasmd/app/params"
-	"github.com/CosmWasm/wasmd/x/wasm"
+	"github.com/nymtech/nyxd/app"
+	"github.com/nymtech/nyxd/app/params"
+	"github.com/nymtech/nyxd/x/wasm"
 )
 
 var MaxAccounts = 10

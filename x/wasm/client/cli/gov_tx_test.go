@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/nymtech/nyxd/x/wasm/types"
 )
 
 func TestParseAccessConfigUpdates(t *testing.T) {
@@ -98,7 +98,7 @@ func TestParseAccessConfigUpdates(t *testing.T) {
 }
 
 func TestParseCodeInfoFlags(t *testing.T) {
-	correctSource := "https://github.com/CosmWasm/wasmd/blob/main/x/wasm/keeper/testdata/hackatom.wasm"
+	correctSource := "https://github.com/nymtech/nyxd/blob/main/x/wasm/keeper/testdata/hackatom.wasm"
 	correctBuilderRef := "cosmwasm/workspace-optimizer:0.12.9"
 
 	wasmBin, err := os.ReadFile("../../keeper/testdata/hackatom.wasm")

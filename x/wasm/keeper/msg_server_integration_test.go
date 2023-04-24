@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/CosmWasm/wasmd/app"
-	"github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/nymtech/nyxd/app"
+	"github.com/nymtech/nyxd/x/wasm/types"
 )
 
 //go:embed testdata/reflect.wasm

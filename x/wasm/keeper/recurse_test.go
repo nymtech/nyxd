@@ -6,7 +6,7 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	"github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/nymtech/nyxd/x/wasm/types"
 
 	wasmvmtypes "github.com/CosmWasm/wasmvm/types"
 	"github.com/stretchr/testify/assert"

@@ -8,7 +8,7 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/nymtech/nyxd/x/wasm/types"
 )
 
 func ParamChanges(r *rand.Rand, cdc codec.Codec) []simtypes.ParamChange {

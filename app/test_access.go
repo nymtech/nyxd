@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/CosmWasm/wasmd/app/params"
+	"github.com/nymtech/nyxd/app/params"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -15,7 +15,7 @@ import (
 	ibctransferkeeper "github.com/cosmos/ibc-go/v4/modules/apps/transfer/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v4/modules/core/keeper"
 
-	"github.com/CosmWasm/wasmd/x/wasm"
+	"github.com/nymtech/nyxd/x/wasm"
 )
 
 // Deprecated: use public app attributes directly

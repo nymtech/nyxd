@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/stretchr/testify/require"
 
-	"github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/nymtech/nyxd/x/wasm/types"
 )
 
 func TestMigrate1To2(t *testing.T) {

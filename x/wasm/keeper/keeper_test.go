@@ -29,8 +29,8 @@ import (
 	"github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/CosmWasm/wasmd/x/wasm/keeper/wasmtesting"
-	"github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/nymtech/nyxd/x/wasm/keeper/wasmtesting"
+	"github.com/nymtech/nyxd/x/wasm/types"
 )
 
 //go:embed testdata/hackatom.wasm
@@ -724,7 +724,7 @@ func TestInstantiateWithContractFactoryChildQueriesParent(t *testing.T) {
 	// 	     and the child contracts queries the senders ContractInfo on instantiation
 	//	then the factory contract's ContractInfo should be returned to the child contract
 	//
-	// see also: https://github.com/CosmWasm/wasmd/issues/896
+	// see also: https://github.com/nymtech/nyxd/issues/896
 	ctx, keepers := CreateTestInput(t, false, AvailableCapabilities)
 	keeper := keepers.WasmKeeper
 
