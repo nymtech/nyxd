@@ -17,10 +17,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	wasmibctesting "github.com/nymtech/nyxd/x/wasm/ibctesting"
-	wasmkeeper "github.com/nymtech/nyxd/x/wasm/keeper"
-	wasmtesting "github.com/nymtech/nyxd/x/wasm/keeper/wasmtesting"
-	"github.com/nymtech/nyxd/x/wasm/types"
+	wasmibctesting "github.com/CosmWasm/wasmd/x/wasm/ibctesting"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtesting "github.com/CosmWasm/wasmd/x/wasm/keeper/wasmtesting"
+	"github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
 func TestFromIBCTransferToContract(t *testing.T) {

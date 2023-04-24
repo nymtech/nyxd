@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	wasmibctesting "github.com/nymtech/nyxd/x/wasm/ibctesting"
-	wasmkeeper "github.com/nymtech/nyxd/x/wasm/keeper"
-	"github.com/nymtech/nyxd/x/wasm/keeper/wasmtesting"
+	wasmibctesting "github.com/CosmWasm/wasmd/x/wasm/ibctesting"
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	"github.com/CosmWasm/wasmd/x/wasm/keeper/wasmtesting"
 )
 
 func TestOnChanOpenInitVersion(t *testing.T) {
