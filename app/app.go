@@ -1015,7 +1015,13 @@ func (app *WasmApp) registerUpgradeHandlers(icaModule ica.AppModule) {
 func (app *WasmApp) registerStoreUpgrades(upgradeInfo storetypes.UpgradeInfo) {
 	if upgradeInfo.Name == "v0.30.2" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{icacontrollertypes.StoreKey, icahosttypes.StoreKey, intertxtypes.StoreKey},
+			Added: []string{
+				icacontrollertypes.StoreKey,
+				icahosttypes.StoreKey,
+				icatypes.StoreKey,
+				intertxtypes.StoreKey,
+				ibcfeetypes.StoreKey,
+			},
 		}
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
