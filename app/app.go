@@ -1010,6 +1010,11 @@ func (app *WasmApp) registerUpgradeHandlers(icaModule ica.AppModule) {
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
+
+	app.UpgradeKeeper.SetUpgradeHandler("v0.30.2-final",
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
 }
 
 func (app *WasmApp) registerStoreUpgrades(upgradeInfo storetypes.UpgradeInfo) {
@@ -1018,6 +1023,19 @@ func (app *WasmApp) registerStoreUpgrades(upgradeInfo storetypes.UpgradeInfo) {
 			Added: []string{
 				icacontrollertypes.StoreKey,
 				icahosttypes.StoreKey,
+				icatypes.StoreKey,
+				intertxtypes.StoreKey,
+				ibcfeetypes.StoreKey,
+			},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	if upgradeInfo.Name == "v0.30.2-final" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{
 				icatypes.StoreKey,
 				intertxtypes.StoreKey,
 				ibcfeetypes.StoreKey,
