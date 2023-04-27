@@ -60,10 +60,10 @@ BECH32_PREFIX ?= n
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=${NYX_APP_NAME} \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=${NYX_APP_NAME} \
-                  -X github.com/CosmWasm/wasmd/app.NodeDir=.${NYX_APP_NAME} \
+		  -X github.com/nymtech/nyxd.NodeDir=.${NYX_APP_NAME} \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X github.com/CosmWasm/wasmd/app.Bech32Prefix=${BECH32_PREFIX} \
+		  -X github.com/nymtech/nyxd.Bech32Prefix=${BECH32_PREFIX} \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
 
 ifeq ($(WITH_CLEVELDB),yes)
@@ -164,7 +164,7 @@ lint: format-tools
 format: format-tools
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs gofumpt -w -s
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs misspell -w
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/CosmWasm/wasmd
+	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -path "./client/lcd/statik/statik.go" | xargs goimports -w -local github.com/nymtech/nyxd
 
 
 ###############################################################################

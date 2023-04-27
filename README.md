@@ -180,10 +180,10 @@ to the configuration.
 
 Available flags:
  
-* `-X github.com/CosmWasm/wasmd/app.NodeDir=.corald` - set the config/data directory for the node (default `~/.wasmd`)
-* `-X github.com/CosmWasm/wasmd/app.Bech32Prefix=coral` - set the bech32 prefix for all accounts (default `wasm`)
-* `-X github.com/CosmWasm/wasmd/app.ProposalsEnabled=true` - enable all x/wasm governance proposals (default `false`)
-* `-X github.com/CosmWasm/wasmd/app.EnableSpecificProposals=MigrateContract,UpdateAdmin,ClearAdmin` - 
+* `-X github.com/CosmWasm/nymtech/nyxd.NodeDir=.corald` - set the config/data directory for the node (default `~/.nyxd`)
+* `-X github.com/CosmWasm/nymtech/nyxd.Bech32Prefix=coral` - set the bech32 prefix for all accounts (default `n`)
+* `-X github.com/CosmWasm/nymtech/nyxd.ProposalsEnabled=true` - enable all x/wasm governance proposals (default `false`)
+* `-X github.com/CosmWasm/nymtech/nyxd.EnableSpecificProposals=MigrateContract,UpdateAdmin,ClearAdmin` - 
     enable a subset of the x/wasm governance proposal types (overrides `ProposalsEnabled`)
 
 Examples:

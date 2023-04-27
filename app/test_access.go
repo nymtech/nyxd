@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/CosmWasm/wasmd/app/params"
+	"github.com/nymtech/nyxd/app/params"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -21,10 +21,10 @@ import (
 // Deprecated: use public app attributes directly
 type TestSupport struct {
 	t   testing.TB
-	app *WasmApp
+	app *NyxdApp
 }
 
-func NewTestSupport(t testing.TB, app *WasmApp) *TestSupport {
+func NewTestSupport(t testing.TB, app *NyxdApp) *TestSupport {
 	return &TestSupport{t: t, app: app}
 }
 
