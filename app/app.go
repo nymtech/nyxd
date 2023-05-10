@@ -959,25 +959,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 }
 
 func (app *WasmApp) registerUpgradeHandlers() {
-	app.UpgradeKeeper.SetUpgradeHandler("v0.27.0", func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-	})
-
-	app.UpgradeKeeper.SetUpgradeHandler("v0.28.0", func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-	})
-
-	app.UpgradeKeeper.SetUpgradeHandler("MigrateTraces",
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			// transfer module consensus version has been bumped to 2
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-		})
-
-	app.UpgradeKeeper.SetUpgradeHandler("v0.30.0", func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-	})
-
-	app.UpgradeKeeper.SetUpgradeHandler("v0.31.0", func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+	app.UpgradeKeeper.SetUpgradeHandler("v0.31.1", func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 	})
 }
