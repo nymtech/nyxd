@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
 
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
-VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 COMMIT := $(shell git log -1 --format='%H')
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
@@ -55,8 +54,9 @@ build_tags_comma_sep := $(subst $(empty),$(comma),$(build_tags))
 
 # process linker flags
 
-NYX_APP_NAME=nyxd
-BECH32_PREFIX=n
+NYX_APP_NAME ?= nyxd
+BECH32_PREFIX ?= n
+VERSION ?= $(shell echo $(shell git describe --tags) | sed 's/^v//')
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=${NYX_APP_NAME} \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=${NYX_APP_NAME} \
