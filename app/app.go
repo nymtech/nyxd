@@ -18,6 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -427,8 +428,6 @@ func NewWasmApp(
 		app.BaseApp,
 	)
 
-	app.registerUpgradeHandlers()
-
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.StakingKeeper = *stakingKeeper.SetHooks(
@@ -596,6 +595,7 @@ func NewWasmApp(
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
+	icaModule := ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper)
 	app.mm = module.NewManager(
 		genutil.NewAppModule(
 			app.AccountKeeper,
@@ -621,7 +621,7 @@ func NewWasmApp(
 		params.NewAppModule(app.ParamsKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
 		ibcfee.NewAppModule(app.IBCFeeKeeper),
-		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		icaModule,
 		intertx.NewAppModule(appCodec, app.InterTxKeeper),
 		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants), // always be last to make sure that it checks for all invariants and not only part of them
 	)
@@ -775,6 +775,15 @@ func NewWasmApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
+
+	app.registerUpgradeHandlers(icaModule)
+
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(err)
+	}
+
+	app.registerStoreUpgrades(upgradeInfo)
 
 	// must be before Loading version
 	// requires the snapshot store to be created and registered as a BaseAppOption
@@ -958,8 +967,44 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	return paramsKeeper
 }
 
-func (app *WasmApp) registerUpgradeHandlers() {
-	app.UpgradeKeeper.SetUpgradeHandler("v0.31.1", func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-	})
+func (app *WasmApp) registerUpgradeHandlers(icaModule ica.AppModule) {
+	app.UpgradeKeeper.SetUpgradeHandler("v0.31.1",
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			// set the ICS27 consensus version so InitGenesis is not run
+
+			fromVM[icatypes.ModuleName] = icaModule.ConsensusVersion()
+
+			// create ICS27 Controller submodule params
+			controllerParams := icacontrollertypes.Params{
+				ControllerEnabled: true,
+			}
+
+			// create ICS27 Host submodule params
+			hostParams := icahosttypes.Params{
+				HostEnabled:   true,
+				AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend"},
+			}
+
+			// initialize ICS27 module
+			icaModule.InitModule(ctx, controllerParams, hostParams)
+
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+}
+
+func (app *WasmApp) registerStoreUpgrades(upgradeInfo storetypes.UpgradeInfo) {
+	if upgradeInfo.Name == "v0.31.1" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{
+				icacontrollertypes.StoreKey,
+				icahosttypes.StoreKey,
+				icatypes.StoreKey,
+				intertxtypes.StoreKey,
+				ibcfeetypes.StoreKey,
+			},
+		}
+
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
 }
