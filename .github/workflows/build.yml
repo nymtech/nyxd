@@ -83,4 +83,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: github.event_name == 'release'
         with:
-          files: build/nyxd-${{ matrix.os }}.tar.gz
+          files: nyxd-${{ matrix.os }}.tar.gz
