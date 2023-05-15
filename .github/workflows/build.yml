@@ -2,6 +2,18 @@ name: Build validator binary
 
 on:
   workflow_dispatch:
+    inputs:
+      bech32_prefix:
+        required: false
+        type: string
+        default: "n"
+      wasmd_version:
+        required: true
+        type: string
+      app_name:
+        required: false
+        type: string
+        default: "nyxd"
   release:
     types: [created]  
 
@@ -21,20 +33,26 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.18
+          go-version: 1.20
+
+      - name: Set up env vars (release)
+        if: github.event_name == 'release'
+        run: |-
+          echo "WASMD_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo "BECH32_PREFIX=${{ env.BECH32_PREFIX }}" >> $GITHUB_ENV
+          echo "APP_NAME=${{ env.APP_NAME }}" >> $GITHUB_ENV
+
+      - name: Set up env vars (workflow_dispatch)  
+        if: github.event_name == 'workflow_dispatch'
+        run: |-
+          echo "WASMD_VERSION=${{ inputs.wasmd_version }}" >> $GITHUB_ENV
+          echo "BECH32_PREFIX=${{ inputs.bech32_prefix }}" >> $GITHUB_ENV
+          echo "APP_NAME=${{ inputs.app_name }}" >> $GITHUB_ENV
+
 
       - name: Build
         run: |-
-          mkdir build
-          
-          go build -o ./build/$APP_NAME -mod=readonly -tags "netgo,ledger" -ldflags "\
-          -X github.com/cosmos/cosmos-sdk/version.Name=$APP_NAME \
-          -X github.com/cosmos/cosmos-sdk/version.AppName=$APP_NAME \
-          -X github.com/CosmWasm/wasmd/app.NodeDir=.nyxd \
-          -X github.com/cosmos/cosmos-sdk/version.Version=$WASMD_VERSION} \
-          -X github.com/cosmos/cosmos-sdk/version.Commit=$GITHUB_SHA \
-          -X github.com/CosmWasm/wasmd/app.Bech32Prefix=$BECH32_PREFIX \
-          -X \"github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger\"" -trimpath ./cmd/wasmd
+          make build
 
       - name: Copy libs (linux)
         if: startsWith(matrix.os, 'ubuntu')
@@ -57,8 +75,12 @@ jobs:
           name: nyxd-${{ matrix.os }}
           path: build/*
 
+      - name: Bundle based on OS
+        run: |-
+          tar -czvf nyxd-${{ matrix.os }}.tar.gz build/*
+
       - name: Upload to release based on tag name
         uses: softprops/action-gh-release@v1
-        if: github.event_name == 'release' && matrix.os == 'ubuntu-22.04'
+        if: github.event_name == 'release'
         with:
-          files: build/*
+          files: build/nyxd-${{ matrix.os }}.tar.gz
