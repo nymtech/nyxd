@@ -57,12 +57,14 @@ jobs:
       - name: Copy libs (linux)
         if: startsWith(matrix.os, 'ubuntu')
         run: |-
+          echo "$(ldd build/nyxd)"
           WASMVM_SO=$(ldd build/nyxd | grep libwasmvm*.so | awk '{ print $3 }')
           cp $WASMVM_SO build
 
       - name: Copy libs (MacOS)
         if: startsWith(matrix.os, 'macos')
         run: |-
+          echo "$(otool -l build/nyxd)"
           WASMVM_SO=$(otool -l build/nyxd | grep RPATH -A2 | tail -n 1 | awk '{ print $2 }')
           cp $WASMVM_SO/libwasmvm.* build
 
