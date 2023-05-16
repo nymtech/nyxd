@@ -25,7 +25,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       BECH32_PREFIX: n
-      WASMD_VERSION: v0.26.1
+      VERSION: v0.26.1
       APP_NAME: nyxd
     steps:
       - uses: actions/checkout@v3
@@ -38,14 +38,14 @@ jobs:
       - name: Set up env vars (release)
         if: github.event_name == 'release'
         run: |-
-          echo "WASMD_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
           echo "BECH32_PREFIX=${{ env.BECH32_PREFIX }}" >> $GITHUB_ENV
           echo "APP_NAME=${{ env.APP_NAME }}" >> $GITHUB_ENV
 
       - name: Set up env vars (workflow_dispatch)  
         if: github.event_name == 'workflow_dispatch'
         run: |-
-          echo "WASMD_VERSION=${{ inputs.wasmd_version }}" >> $GITHUB_ENV
+          echo "VERSION=${{ inputs.wasmd_version }}" >> $GITHUB_ENV
           echo "BECH32_PREFIX=${{ inputs.bech32_prefix }}" >> $GITHUB_ENV
           echo "APP_NAME=${{ inputs.app_name }}" >> $GITHUB_ENV
 
