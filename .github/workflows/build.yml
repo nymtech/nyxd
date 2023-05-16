@@ -52,6 +52,7 @@ jobs:
 
       - name: Build
         run: |-
+          echo "VERSION=$VERSION"
           make build
 
       - name: Copy libs (linux)
