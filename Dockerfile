@@ -1,14 +1,15 @@
 # --------------------------------------------------------
 FROM --platform=linux/amd64 ubuntu:22.04
-ARG arch=x86_64
+ARG RELEASE_URL=https://github.com/nymtech/nyxd/releases/download/v0.31.1/nyxd-ubuntu-22.04.tar.gz
+ARG ARCHIVE_NAME=nyxd-ubuntu-22.04.tar.gz
 
 RUN apt update \
         && apt -y install ca-certificates jq curl vim wget
 
 WORKDIR /opt
 
-RUN wget https://github.com/nymtech/nyxd/releases/download/v0.31.1/nyxd-ubuntu-22.04.tar.gz
-RUN tar -zxvf nyxd-ubuntu-22.04.tar.gz
+RUN wget ${RELEASE_URL}
+RUN tar -zxvf ${ARCHIVE_NAME}
 
 RUN chmod u+x nyxd
 RUN chmod u+x libwasmvm.x86_64.so
