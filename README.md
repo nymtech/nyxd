@@ -7,6 +7,7 @@ many gaia-specific files. However, the `nyxd` binary should function just like `
 addition of the `x/wasm` module. 
 
 **Note**: Requires [Go 1.19+](https://golang.org/dl/)
+**Note**: The mainnet binary built by the Nym team is built with `Go 1.20.4` so if you plan on building from source please use that version!
 
 As this is essentially a no-modifications fork of `wasmd`, security issues are best handled upstream. For critical security issues & disclosure, see the `cosmwasm/wasmd` [SECURITY.md](https://github.com/CosmWasm/wasmd/blob/main/SECURITY.md).
 
