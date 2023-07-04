@@ -116,6 +116,7 @@ import (
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmclient "github.com/CosmWasm/wasmd/x/wasm/client"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
@@ -304,6 +305,7 @@ func NewWasmApp(
 	wasmOpts []wasm.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *WasmApp {
+	wasmtypes.MaxWasmSize = 1200 * 1024 // set this to 1.2MB
 	appCodec, legacyAmino := encodingConfig.Marshaler, encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
