@@ -3,9 +3,10 @@ package main
 import (
 	"os"
 
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
-
+	
 	"github.com/CosmWasm/wasmd/app"
 )
 
