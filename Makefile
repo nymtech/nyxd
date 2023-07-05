@@ -58,10 +58,10 @@ VERSION ?= $(shell echo $(shell git describe --tags) | sed 's/^v//')
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=${NYX_APP_NAME} \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=${NYX_APP_NAME} \
-                  -X github.com/CosmWasm/wasmd/app.NodeDir=.${NYX_APP_NAME} \
+		  -X github.com/nymtech/nyxd/app.NodeDir=.${NYX_APP_NAME} \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
-		  -X github.com/CosmWasm/wasmd/app.Bech32Prefix=${BECH32_PREFIX} \
+		  -X github.com/nymtech/nyxd/app.Bech32Prefix=${BECH32_PREFIX} \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
 
 ifeq ($(WITH_CLEVELDB),yes)
