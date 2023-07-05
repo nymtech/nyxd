@@ -993,6 +993,11 @@ func (app *WasmApp) registerUpgradeHandlers(icaModule ica.AppModule) {
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
+
+	app.UpgradeKeeper.SetUpgradeHandler("v0.32.0",
+		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
 }
 
 func (app *WasmApp) registerStoreUpgrades(upgradeInfo storetypes.UpgradeInfo) {
@@ -1009,6 +1014,10 @@ func (app *WasmApp) registerStoreUpgrades(upgradeInfo storetypes.UpgradeInfo) {
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	if upgradeInfo.Name == "v0.32.0" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		// do nothing, there are no store upgrades for this version, keeping this as a log
 	}
 }
 
