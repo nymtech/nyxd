@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/CosmWasm/wasmd v0.32.0
 	github.com/cosmos/cosmos-sdk v0.45.15
-	github.com/cosmos/ibc-go/v4 v4.3.0
+	github.com/cosmos/ibc-go/v4 v4.4.2
 	github.com/cosmos/interchain-accounts v0.2.6
 	github.com/gorilla/mux v1.8.0
 	github.com/prometheus/client_golang v1.15.0
