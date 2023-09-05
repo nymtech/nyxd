@@ -28,7 +28,7 @@ jobs:
       VERSION: v0.26.1
       APP_NAME: nyxd
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v4
