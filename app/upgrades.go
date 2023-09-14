@@ -21,6 +21,9 @@ import (
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
+	"github.com/cosmos/cosmos-sdk/x/group"
+	"github.com/cosmos/cosmos-sdk/x/nft"
+
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
@@ -93,6 +96,8 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 			Added: []string{
 				consensustypes.ModuleName,
 				crisistypes.ModuleName,
+				nft.ModuleName,
+				group.ModuleName,
 			},
 		}
 
