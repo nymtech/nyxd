@@ -2,7 +2,117 @@
 
 ## [Unreleased](https://github.com/CosmWasm/wasmd/tree/HEAD)
 
-[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.32.0...HEAD)
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.41.0...HEAD)
+
+## [v0.41.0](https://github.com/CosmWasm/wasmd/tree/v0.41.0) (2023-07-28)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.40.2...v0.41.0)
+
+- Bump IBC-Go to 7.2.0 [\#1459](https://github.com/CosmWasm/wasmd/pull/1459)
+- Ensure history position does not conflict [\#1462](https://github.com/CosmWasm/wasmd/pull/1462)
+- Bump sequence in ibctests for failed messages [\#1464](https://github.com/CosmWasm/wasmd/pull/1464)
+- Accept wasm data from state-sync as valid [\#1467](https://github.com/CosmWasm/wasmd/issues/1467)
+- Add updates to ibctesting framework for MS [\#1472](https://github.com/CosmWasm/wasmd/pull/1472)
+- Bump CometBFT to v0.37.2 - security fix [\#1479](https://github.com/CosmWasm/wasmd/pull/1479)
+- Gov: support contracts that dynamically instantiate other contracts [\#1207](https://github.com/CosmWasm/wasmd/issues/1207)
+- Deprecate alias.go [\#1484](https://github.com/CosmWasm/wasmd/pull/1484)
+- Upgrade to wasmvm v1.3 [\#1296](https://github.com/CosmWasm/wasmd/issues/1296)
+- System tests dependency cleanup [\#1489](https://github.com/CosmWasm/wasmd/pull/1489)
+- Allow better override of wasmVM in x/wasm keeper [\#1494](https://github.com/CosmWasm/wasmd/pull/1494)
+- Make system tests extendable for other app binaries [\#1503](https://github.com/CosmWasm/wasmd/pull/1503)
+- Build release + artifact on CI [\#1515](https://github.com/CosmWasm/wasmd/pull/1515)
+- Add/Remove addresses for code upload params [\#1493](https://github.com/CosmWasm/wasmd/pull/1493)
+- Bump SDK to v0.47.4 [\#1525](https://github.com/CosmWasm/wasmd/pull/1525)
+
+### Notable changes:
+- Bump CometBFT to [v0.37.2](https://github.com/cometbft/cometbft/releases/tag/v0.37.2) because of security issues. See https://github.com/advisories/GHSA-w24w-wp77-qffm
+- Support for new wasmvm v1.3.0 capabilities [\#1296](https://github.com/CosmWasm/wasmd/issues/1296)
+- Deprecate alias.go [\#1484](https://github.com/CosmWasm/wasmd/pull/1484)
+- Gov: support contracts that dynamically instantiate other contracts [\#1207](https://github.com/CosmWasm/wasmd/issues/1207)
+- Add/Remove addresses for code upload params [\#1493](https://github.com/CosmWasm/wasmd/pull/1493)
+
+### Migration notes:
+- This release does not include any state migrations but breaking changes that require a coordinated chain upgrade.
+- This release contains an ibc-go version bump from v7.0.1 to v7.2.0. Please read the [migration guide](https://github.com/cosmos/ibc-go/blob/v7.2.0/docs/migrations/v7-to-v7_1.md) carefully.
+
+## [v0.40.2](https://github.com/CosmWasm/wasmd/tree/v0.40.2) (2023-06-09)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.40.1...v0.40.2)
+
+This patch release includes only the cosmos-sdk upgrade to [v0.47.3](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.47.3).
+It solves [barberry](https://forum.cosmos.network/t/cosmos-sdk-security-advisory-barberry/10825) security vulnerability.
+
+### Notable changes:
+- Upgrade cosmos-sdk to [v0.47.3](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.47.3)
+
+### Migration notes:
+- This release does not include any state migrations or breaking changes, therefore a coordinated chain upgrade is not required.
+
+## [v0.40.1](https://github.com/CosmWasm/wasmd/tree/v0.40.1) (2023-06-06)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.40.0...v0.40.1)
+
+This patch release includes only the wasmvm upgrade to [v1.2.4](https://github.com/CosmWasm/wasmvm/releases/tag/v1.2.4).
+It solves some incompatibility problems by improving cache invalidation. See [\#426](https://github.com/CosmWasm/wasmvm/issues/426)
+
+### Notable changes:
+- Upgrade wasmvm to v1.2.4. [\#1430](https://github.com/CosmWasm/wasmd/issues/1430)
+
+### Migration notes:
+- This release does not include any state migrations or breaking changes, therefore a coordinated chain upgrade is not required.
+
+## [v0.40.0](https://github.com/CosmWasm/wasmd/tree/v0.40.0) (2023-05-25)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.32.0...v0.40.0)
+
+Wasmd 0.40 has a large dependency upgrade of the Cosmos SDK version from 0.45 to 0.47. Please read notable changes and migration notes
+below to learn more!
+
+- Bump IBC-Go to v7.0.1 to include the fix for the huckleberry security advisory.[\#1418](https://github.com/CosmWasm/wasmd/pull/1418)
+- Fix cli update-instantiate-config command [/#1415](https://github.com/CosmWasm/wasmd/pull/1415)
+- Import export simulation test for `x/wasm` is missing [\#1372](https://github.com/CosmWasm/wasmd/issues/1372)
+- Better tracking of CosmWasm capabilities [\#1341](https://github.com/CosmWasm/wasmd/issues/1341)
+- Rename `lastIDKey` key [\#1182](https://github.com/CosmWasm/wasmd/issues/1182)
+- Use ICS4Wrapper to send raw IBC packets & fix Fee middleware in wasm stack \(backport \#1375\) [\#1379](https://github.com/CosmWasm/wasmd/pull/1379)
+- Add wasm store to import-export sims [\#1374](https://github.com/CosmWasm/wasmd/pull/1374)
+- Bumped SDK to 0.47.2 and CometBFT to 0.37.1 [\#1369](https://github.com/CosmWasm/wasmd/pull/1369)
+- Remove starport config [\#1359](https://github.com/CosmWasm/wasmd/pull/1359)
+- Proper v1 gov support for wasm msg types [\#1301](https://github.com/CosmWasm/wasmd/issues/1301)
+- Cleanup `ErrNotFound` cases [\#1258](https://github.com/CosmWasm/wasmd/issues/1258)
+- New proto annotations  [\#1157](https://github.com/CosmWasm/wasmd/issues/1157)
+- Simulations with '--dry-run' return an error [\#713](https://github.com/CosmWasm/wasmd/issues/713)
+- Add wasmvm decorator option [\#1348](https://github.com/CosmWasm/wasmd/pull/1348)
+- More verbose error message [\#1354](https://github.com/CosmWasm/wasmd/pull/1354)
+- Remove gogo/protobuf from the 47 build's dependencies [\#1281](https://github.com/CosmWasm/wasmd/issues/1281)
+- Set final ibc-go version [\#1271](https://github.com/CosmWasm/wasmd/issues/1271)
+- Upgrade to cosmos-sdk proto 0.47.x [\#1148](https://github.com/CosmWasm/wasmd/issues/1148)
+
+### Notable changes:
+- If you are not coming from v0.32.0, please see the "Notables changes" below, first. Especially about CometBFT.
+- IBC-Go is a new major version including the "hucklebery" security fix. See [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1).
+- SDK 47 support is a big step from the SDK 45 version supported before. Make sure to read the upgrade guide for the SDK
+  before applying any changes. Links below. 
+- Some advice from working with SDK 47 that may affect you, too:    
+  - The SDK version includes some key store migration for the CLI. Make sure you backup your private keys before 
+    testing this! You can not switch back to v0.45 afaik
+  - Take care that you use the goleveldb version used in the SDK. A transitive dependency may change it which caused 
+    failing queries on a running server: `Error: rpc error: code = InvalidArgument desc = failed to load state at height 1; version does not exist (latest height: 1): invalid request`
+    Ensure this in go.mod:
+    `github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7`
+  - With custom modules, use the new proto-builder version (Makefile) to let proto types register with the correct registry
+  - Ensure that all `ParameterChangeProposal` are completed before the upgrade or migrate them to `v1.gov`. SDK and wasm 
+    modules execute a migration before so that these proposals would not have an affect.
+  - Attribute keys/ values in events are strings and not bytes in CometBFT. This may break clients
+  - CLI: `add-genesis-account`, `gentx,add-genesis-account`, `collect-gentxs` and others are now under genesis command as parent
+  - CLI: `--broadcast-mode block` was removed. You need to query the result for a TX with `wasmd q tx <hash>` instead
+
+### Migration notes:
+- This release contains a [state migration](./x/wasm/migrations/v2) for the wasmd module that stores 
+  the params in the module store.
+- SDK v0.47 comes with a lot of api/state braking changes to previous versions. Please see their [upgrade guide](https://github.com/cosmos/cosmos-sdk/blob/main/UPGRADING.md#v047x)
+  which contains a lot of helpful details.
+- Please read the [migration guide](https://github.com/cosmos/ibc-go/tree/v7.0.0/docs/migrations) for IBC-Go [v7.0.0](https://github.com/cosmos/ibc-go/releases/tag/v7.0.0) carefully
+
 
 ## [v0.32.0](https://github.com/CosmWasm/wasmd/tree/v0.32.0) (2023-05-11)
 
