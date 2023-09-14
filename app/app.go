@@ -789,13 +789,6 @@ func NewWasmApp(
 	app.SetEndBlocker(app.EndBlocker)
 	app.setAnteHandler(encodingConfig.TxConfig, wasmConfig, keys[wasmtypes.StoreKey])
 
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(err)
-	}
-
-	// app.registerStoreUpgrades(upgradeInfo)
-
 	// must be before Loading version
 	// requires the snapshot store to be created and registered as a BaseAppOption
 	// see cmd/wasmd/root.go: 206 - 214 approx
@@ -1065,57 +1058,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	return paramsKeeper
 }
-
-func (app *WasmApp) registerUpgradeHandlers(icaModule ica.AppModule) {
-	app.UpgradeKeeper.SetUpgradeHandler("v0.31.1",
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			// set the ICS27 consensus version so InitGenesis is not run
-
-			fromVM[icatypes.ModuleName] = icaModule.ConsensusVersion()
-
-			// create ICS27 Controller submodule params
-			controllerParams := icacontrollertypes.Params{
-				ControllerEnabled: true,
-			}
-
-			// create ICS27 Host submodule params
-			hostParams := icahosttypes.Params{
-				HostEnabled:   true,
-				AllowMessages: []string{"/cosmos.bank.v1beta1.MsgSend"},
-			}
-
-			// initialize ICS27 module
-			icaModule.InitModule(ctx, controllerParams, hostParams)
-
-			return app.ModuleManager.RunMigrations(ctx, app.configurator, fromVM)
-		})
-
-	app.UpgradeKeeper.SetUpgradeHandler("v0.32.0",
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			return app.ModuleManager.RunMigrations(ctx, app.configurator, fromVM)
-		})
-}
-
-/* func (app *WasmApp) registerStoreUpgrades(upgradeInfo storetypes.UpgradeInfo) {
-	if upgradeInfo.Name == "v0.31.1" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{
-				icacontrollertypes.StoreKey,
-				icahosttypes.StoreKey,
-				icatypes.StoreKey,
-				ibcfeetypes.StoreKey,
-			},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
-
-	if upgradeInfo.Name == "v0.32.0" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		// do nothing, there are no store upgrades for this version, keeping this as a log
-	}
-}
-*/
 
 // overrideWasmVariables overrides the wasm variables to:
 //   - allow for larger wasm files

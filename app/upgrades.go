@@ -24,13 +24,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
-// UpgradeName defines the on-chain upgrade name for the sample SimApp upgrade
-// from v046 to v047.
-//
-// NOTE: This upgrade defines a reference implementation of what an upgrade
-// could look like when an application is migrating from Cosmos SDK version
-// v0.46.x to v0.47.x.
-const UpgradeName = "v046-to-v047"
+const UpgradeName = "v0.41.0"
 
 func (app WasmApp) RegisterUpgradeHandlers() {
 	// Set param key table for params module migration
