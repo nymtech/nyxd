@@ -21,6 +21,8 @@ import (
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
+	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
+
 	"github.com/cosmos/cosmos-sdk/x/group"
 	"github.com/cosmos/cosmos-sdk/x/nft"
 
@@ -76,11 +78,21 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+
+			ctx.Logger().Info(" == Starting in-place migration steps == ")
+
 			// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
+			ctx.Logger().Info("== x/param migration => Migrating parameters from x/params")
 			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
 
-			// Note: this migration is optional,
-			// You can include x/gov proposal migration documented in [UPGRADING.md](https://github.com/cosmos/cosmos-sdk/blob/main/UPGRADING.md)
+			// IBC v4-v5 -- nothing
+			// IBC v5-v6 -- no relevant upgrades as we do not use ICS27 custom auth. modules
+			// IBC v6-v7 -- Prunes expired consensus states ->
+			ctx.Logger().Info("== IBC Upgrade => Pruning Consensus States")
+			_, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, app.AppCodec(), app.IBCKeeper.ClientKeeper)
+			if err != nil {
+				return nil, err
+			}
 
 			return app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 		},
