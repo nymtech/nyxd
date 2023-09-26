@@ -5,12 +5,16 @@ import (
 	"io"
 	"os"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
 	dbm "github.com/cometbft/cometbft-db"
 	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	rosettaCmd "cosmossdk.io/tools/rosetta/cmd"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -25,12 +29,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/spf13/cast"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmcli "github.com/CosmWasm/wasmd/x/wasm/client/cli"
@@ -54,7 +55,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	cfg.Seal()
 
 	initClientCtx := client.Context{}.
-		WithCodec(encodingConfig.Marshaler).
+		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
@@ -172,7 +173,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		keys.Commands(app.DefaultNodeHome),
 	)
 	// add rosetta
-	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Marshaler))
+	rootCmd.AddCommand(rosettaCmd.RosettaCommand(encodingConfig.InterfaceRegistry, encodingConfig.Codec))
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
@@ -255,7 +256,6 @@ func newApp(
 
 	return app.NewWasmApp(
 		logger, db, traceStore, true,
-		app.GetEnabledProposals(),
 		appOpts,
 		wasmOpts,
 		baseappOptions...,
@@ -294,7 +294,6 @@ func appExport(
 		db,
 		traceStore,
 		height == -1,
-		app.GetEnabledProposals(),
 		appOpts,
 		emptyWasmOpts,
 	)
