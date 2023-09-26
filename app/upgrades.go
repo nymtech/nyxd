@@ -30,7 +30,7 @@ import (
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 )
 
-const UpgradeName = "v0.41.0"
+const UpgradeName = "v0.42.0"
 
 func (app WasmApp) RegisterUpgradeHandlers() {
 	// Set param key table for params module migration
