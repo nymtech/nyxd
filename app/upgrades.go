@@ -26,6 +26,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/group"
 	"github.com/cosmos/cosmos-sdk/x/nft"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 )
@@ -74,26 +75,31 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 		}
 	}
 
-	baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 
-			ctx.Logger().Info(" == Starting in-place migration steps == ")
+			ctx.Logger().Info("== Starting in-place migration steps == ")
 
-			// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
+			// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module
 			ctx.Logger().Info("== x/param migration => Migrating parameters from x/params")
+			baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
 
 			// IBC v4-v5 -- nothing
 			// IBC v5-v6 -- no relevant upgrades as we do not use ICS27 custom auth. modules
-			// IBC v6-v7 -- Prunes expired consensus states ->
+			// IBC v6-v7 -- Prunes expired consensus states
 			ctx.Logger().Info("== IBC Upgrade => Pruning Consensus States")
 			_, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, app.AppCodec(), app.IBCKeeper.ClientKeeper)
 			if err != nil {
 				return nil, err
 			}
+
+			// IBC v7-v7.1 -- allow localhost client to IBC client params
+			ctx.Logger().Info("== IBC Upgrade => allow 09-localhost")
+			params := app.IBCKeeper.ClientKeeper.GetParams(ctx)
+			params.AllowedClients = append(params.AllowedClients, exported.Localhost)
+			app.IBCKeeper.ClientKeeper.SetParams(ctx, params)
 
 			return app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 		},
