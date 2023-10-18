@@ -3,8 +3,8 @@ module github.com/nymtech/nyxd
 go 1.20
 
 require (
-	github.com/CosmWasm/wasmd v0.42.0
-	github.com/CosmWasm/wasmvm v1.4.0
+	github.com/CosmWasm/wasmd v0.43.0
+	github.com/CosmWasm/wasmvm v1.4.1
 	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.3.0
@@ -195,3 +195,6 @@ replace (
 	// pin version! 126854af5e6d has issues with the store so that queries fail
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
+
+// see https://github.com/CosmWasm/wasmd/issues/1651
+retract v0.42.0
