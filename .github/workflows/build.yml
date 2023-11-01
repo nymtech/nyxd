@@ -15,7 +15,7 @@ on:
         type: string
         default: "nyxd"
   release:
-    types: [created]  
+    types: [created]
 
 jobs:
   build:
@@ -42,7 +42,7 @@ jobs:
           echo "BECH32_PREFIX=${{ env.BECH32_PREFIX }}" >> $GITHUB_ENV
           echo "APP_NAME=${{ env.APP_NAME }}" >> $GITHUB_ENV
 
-      - name: Set up env vars (workflow_dispatch)  
+      - name: Set up env vars (workflow_dispatch)
         if: github.event_name == 'workflow_dispatch'
         run: |-
           echo "VERSION=${{ inputs.wasmd_version }}" >> $GITHUB_ENV

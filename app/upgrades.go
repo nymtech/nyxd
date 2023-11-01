@@ -1,6 +1,8 @@
 package app
 
 import (
+	"time"
+
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -81,16 +83,21 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 
 			ctx.Logger().Info("== Starting in-place migration steps == ")
 
-			// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module
-			ctx.Logger().Info("== x/param migration => Migrating parameters from x/params")
-			baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
-
 			// IBC v4-v5 -- nothing
 			// IBC v5-v6 -- no relevant upgrades as we do not use ICS27 custom auth. modules
 			// IBC v6-v7 -- Prunes expired consensus states
 			ctx.Logger().Info("== IBC Upgrade => Pruning Consensus States")
 			_, err := ibctmmigrations.PruneExpiredConsensusStates(ctx, app.AppCodec(), app.IBCKeeper.ClientKeeper)
+			if err != nil {
+				return nil, err
+			}
+
+			// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module
+			ctx.Logger().Info("== x/param migration => Migrating parameters from x/params")
+			baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
+
+			migrations, err := app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
 			if err != nil {
 				return nil, err
 			}
@@ -101,7 +108,28 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 			params.AllowedClients = append(params.AllowedClients, exported.Localhost)
 			app.IBCKeeper.ClientKeeper.SetParams(ctx, params)
 
-			return app.ModuleManager.RunMigrations(ctx, app.Configurator(), fromVM)
+			// Set the voting time parameter
+			ctx.Logger().Info("== Gov Param update ")
+			votingPeriod := time.Hour * 12
+			govParams := app.GovKeeper.GetParams(ctx)
+
+			// Burns proposal if it doesn't enter voting period
+			//govParams.BurnProposalDepositPrevote = true
+			// Burns proposal if proposal doesn't reach quorum
+			//govParams.BurnVoteQuorum = false
+			// Burns proposal if NWV outcome
+			//govParams.BurnVoteVeto = true
+			// Set the voting period
+			govParams.VotingPeriod = &votingPeriod
+			// Set an initial deposit ratio to prevent proposal spam
+			govParams.MinInitialDepositRatio = sdk.NewDecWithPrec(25, 2).String()
+
+			err = app.GovKeeper.SetParams(ctx, govParams)
+			if err != nil {
+				return nil, err
+			}
+
+			return migrations, nil
 		},
 	)
 
