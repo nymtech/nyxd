@@ -8,6 +8,8 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	tmcfg "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/nymtech/nyxd/app"
+	"github.com/nymtech/nyxd/app/params"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
@@ -37,9 +39,6 @@ import (
 	wasmcli "github.com/CosmWasm/wasmd/x/wasm/client/cli"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-
-	"github.com/nymtech/nyxd/app"
-	"github.com/nymtech/nyxd/app/params"
 )
 
 // NewRootCmd creates a new root command for wasmd. It is called once in the

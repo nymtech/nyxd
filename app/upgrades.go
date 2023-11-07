@@ -6,6 +6,8 @@ import (
 	icacontrollertypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/controller/types"
 	icahosttypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/host/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -18,17 +20,13 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/cosmos/cosmos-sdk/x/group"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/nft"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
-
-	"github.com/cosmos/cosmos-sdk/x/group"
-	"github.com/cosmos/cosmos-sdk/x/nft"
-	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 )
@@ -80,7 +78,6 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
 		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-
 			ctx.Logger().Info("== Starting in-place migration steps == ")
 
 			// IBC v4-v5 -- nothing
@@ -91,9 +88,14 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 			if err != nil {
 				return nil, err
 			}
+			// IBC v7-v7.1 -- allow localhost client to IBC client params
+			ctx.Logger().Info("== IBC Upgrade => allow 09-localhost")
+			params := app.IBCKeeper.ClientKeeper.GetParams(ctx)
+			params.AllowedClients = append(params.AllowedClients, exported.Localhost)
+			app.IBCKeeper.ClientKeeper.SetParams(ctx, params)
 
 			// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module
-			ctx.Logger().Info("== x/param migration => Migrating parameters from x/params")
+			ctx.Logger().Info("== x/params migration => Migrating to module owned params")
 			baseAppLegacySS := app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 			baseapp.MigrateParams(ctx, baseAppLegacySS, &app.ConsensusParamsKeeper)
 
@@ -102,24 +104,18 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 				return nil, err
 			}
 
-			// IBC v7-v7.1 -- allow localhost client to IBC client params
-			ctx.Logger().Info("== IBC Upgrade => allow 09-localhost")
-			params := app.IBCKeeper.ClientKeeper.GetParams(ctx)
-			params.AllowedClients = append(params.AllowedClients, exported.Localhost)
-			app.IBCKeeper.ClientKeeper.SetParams(ctx, params)
-
 			// Set the voting time parameter
-			ctx.Logger().Info("== Gov Param update ")
-			votingPeriod := time.Hour * 12
+			ctx.Logger().Info("== x/gov param update => Set new parameters and initial deposit ")
 			govParams := app.GovKeeper.GetParams(ctx)
 
-			// Burns proposal if it doesn't enter voting period
-			//govParams.BurnProposalDepositPrevote = true
-			// Burns proposal if proposal doesn't reach quorum
-			//govParams.BurnVoteQuorum = false
-			// Burns proposal if NWV outcome
-			//govParams.BurnVoteVeto = true
+			// Burns deposit if it doesn't enter voting period
+			govParams.BurnProposalDepositPrevote = true
+			// Burns deposit if proposal doesn't reach quorum
+			govParams.BurnVoteQuorum = false
+			// Burns deposit if NWV outcome
+			govParams.BurnVoteVeto = true
 			// Set the voting period
+			votingPeriod := time.Hour * 24 * 7 // 7 days
 			govParams.VotingPeriod = &votingPeriod
 			// Set an initial deposit ratio to prevent proposal spam
 			govParams.MinInitialDepositRatio = sdk.NewDecWithPrec(25, 2).String()
