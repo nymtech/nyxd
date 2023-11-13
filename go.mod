@@ -7,7 +7,7 @@ require (
 	github.com/CosmWasm/wasmvm v1.4.1
 	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/cosmos/gogoproto v1.4.10
-	github.com/cosmos/ibc-go/v7 v7.3.0
+	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/prometheus/client_golang v1.16.0
 	github.com/snikch/goodman v0.0.0-20171125024755-10e37e294daa
 	github.com/spf13/cast v1.5.1
