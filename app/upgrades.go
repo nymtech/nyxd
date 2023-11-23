@@ -120,6 +120,11 @@ func (app WasmApp) RegisterUpgradeHandlers() {
 			// Set an initial deposit ratio to prevent proposal spam
 			govParams.MinInitialDepositRatio = sdk.NewDecWithPrec(25, 2).String()
 
+			// Set staking parameters. Let min commision be zero
+			stakingParams := app.StakingKeeper.GetParams(ctx)
+			stakingParams.MinCommissionRate = sdk.ZeroDec()
+			app.StakingKeeper.SetParams(ctx, stakingParams)
+
 			err = app.GovKeeper.SetParams(ctx, govParams)
 			if err != nil {
 				return nil, err
