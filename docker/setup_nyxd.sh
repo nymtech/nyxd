@@ -17,17 +17,17 @@ if ! nyxd keys show validator; then
   (echo "$PASSWORD"; echo "$PASSWORD") | nyxd keys add validator
 fi
 # hardcode the validator account for this instance
-echo "$PASSWORD" | nyxd add-genesis-account validator "1000000000$STAKE,1000000000$FEE"
+echo "$PASSWORD" | nyxd genesis add-genesis-account validator "1000000000$STAKE,1000000000$FEE"
 
 # (optionally) add a few more genesis accounts
 for addr in "$@"; do
   echo $addr
-  nyxd add-genesis-account "$addr" "1000000000$STAKE,1000000000$FEE"
+  nyxd genesis add-genesis-account "$addr" "1000000000$STAKE,1000000000$FEE"
 done
 
 # submit a genesis validator tx
 ## Workraround for https://github.com/cosmos/cosmos-sdk/issues/8251
-(echo "$PASSWORD"; echo "$PASSWORD"; echo "$PASSWORD") | nyxd gentx validator "250000000$STAKE" --chain-id="$CHAIN_ID" --amount="250000000$STAKE"
+(echo "$PASSWORD"; echo "$PASSWORD"; echo "$PASSWORD") | nyxd genesis gentx validator "250000000$STAKE" --chain-id="$CHAIN_ID" --amount="250000000$STAKE"
 ## should be:
 # (echo "$PASSWORD"; echo "$PASSWORD"; echo "$PASSWORD") | nyxd gentx validator "250000000$STAKE" --chain-id="$CHAIN_ID"
-nyxd collect-gentxs
+nyxd genesis collect-gentxs
