@@ -48,7 +48,8 @@ func CreateUpgradeHandler(
 		logger.Info(fmt.Sprintf("Post-upgrade map: %v", newVersionMap))
 		logger.Info("== Upgrade complete! == ")
 
-		// TODO : Consider asserting invariants
+		// TODO : We should probably assert invariants after every upgrade,
+		// but this one doesn't change much.
 
 		return newVersionMap, err
 

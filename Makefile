@@ -89,7 +89,7 @@ else
 endif
 
 build-windows-client: go.sum
-	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/wasmd.exe ./cmd/wasmd
+	GOOS=windows GOARCH=amd64 go build -mod=readonly $(BUILD_FLAGS) -o build/nyxd.exe ./cmd/nyxd
 
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/${NYX_APP_NAME}
