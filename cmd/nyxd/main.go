@@ -3,23 +3,17 @@ package main
 import (
 	"os"
 
-	"github.com/nymtech/nyxd/app"
-
-	"github.com/cosmos/cosmos-sdk/server"
+	"cosmossdk.io/log"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
+	"github.com/nymtech/nyxd/app"
 )
 
 func main() {
 	app.OverrideWasmVariables()
-	rootCmd, _ := NewRootCmd()
+	rootCmd := NewRootCmd()
 
 	if err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome); err != nil {
-		switch e := err.(type) {
-		case server.ErrorCode:
-			os.Exit(e.Code)
-
-		default:
-			os.Exit(1)
-		}
+		log.NewLogger(rootCmd.OutOrStderr()).Error("failure when running app", "err", err)
+		os.Exit(1)
 	}
 }

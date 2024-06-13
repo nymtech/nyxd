@@ -13,10 +13,10 @@
     - [ContractInfo](#cosmwasm.wasm.v1.ContractInfo)
     - [Model](#cosmwasm.wasm.v1.Model)
     - [Params](#cosmwasm.wasm.v1.Params)
-  
+
     - [AccessType](#cosmwasm.wasm.v1.AccessType)
     - [ContractCodeHistoryOperationType](#cosmwasm.wasm.v1.ContractCodeHistoryOperationType)
-  
+
 - [cosmwasm/wasm/v1/authz.proto](#cosmwasm/wasm/v1/authz.proto)
     - [AcceptedMessageKeysFilter](#cosmwasm.wasm.v1.AcceptedMessageKeysFilter)
     - [AcceptedMessagesFilter](#cosmwasm.wasm.v1.AcceptedMessagesFilter)
@@ -29,22 +29,39 @@
     - [MaxCallsLimit](#cosmwasm.wasm.v1.MaxCallsLimit)
     - [MaxFundsLimit](#cosmwasm.wasm.v1.MaxFundsLimit)
     - [StoreCodeAuthorization](#cosmwasm.wasm.v1.StoreCodeAuthorization)
-  
+
 - [cosmwasm/wasm/v1/genesis.proto](#cosmwasm/wasm/v1/genesis.proto)
     - [Code](#cosmwasm.wasm.v1.Code)
     - [Contract](#cosmwasm.wasm.v1.Contract)
     - [GenesisState](#cosmwasm.wasm.v1.GenesisState)
     - [Sequence](#cosmwasm.wasm.v1.Sequence)
-  
+
 - [cosmwasm/wasm/v1/ibc.proto](#cosmwasm/wasm/v1/ibc.proto)
     - [MsgIBCCloseChannel](#cosmwasm.wasm.v1.MsgIBCCloseChannel)
     - [MsgIBCSend](#cosmwasm.wasm.v1.MsgIBCSend)
     - [MsgIBCSendResponse](#cosmwasm.wasm.v1.MsgIBCSendResponse)
-  
+
+- [cosmwasm/wasm/v1/proposal_legacy.proto](#cosmwasm/wasm/v1/proposal_legacy.proto)
+    - [AccessConfigUpdate](#cosmwasm.wasm.v1.AccessConfigUpdate)
+    - [ClearAdminProposal](#cosmwasm.wasm.v1.ClearAdminProposal)
+    - [ExecuteContractProposal](#cosmwasm.wasm.v1.ExecuteContractProposal)
+    - [InstantiateContract2Proposal](#cosmwasm.wasm.v1.InstantiateContract2Proposal)
+    - [InstantiateContractProposal](#cosmwasm.wasm.v1.InstantiateContractProposal)
+    - [MigrateContractProposal](#cosmwasm.wasm.v1.MigrateContractProposal)
+    - [PinCodesProposal](#cosmwasm.wasm.v1.PinCodesProposal)
+    - [StoreAndInstantiateContractProposal](#cosmwasm.wasm.v1.StoreAndInstantiateContractProposal)
+    - [StoreCodeProposal](#cosmwasm.wasm.v1.StoreCodeProposal)
+    - [SudoContractProposal](#cosmwasm.wasm.v1.SudoContractProposal)
+    - [UnpinCodesProposal](#cosmwasm.wasm.v1.UnpinCodesProposal)
+    - [UpdateAdminProposal](#cosmwasm.wasm.v1.UpdateAdminProposal)
+    - [UpdateInstantiateConfigProposal](#cosmwasm.wasm.v1.UpdateInstantiateConfigProposal)
+
 - [cosmwasm/wasm/v1/query.proto](#cosmwasm/wasm/v1/query.proto)
     - [CodeInfoResponse](#cosmwasm.wasm.v1.CodeInfoResponse)
     - [QueryAllContractStateRequest](#cosmwasm.wasm.v1.QueryAllContractStateRequest)
     - [QueryAllContractStateResponse](#cosmwasm.wasm.v1.QueryAllContractStateResponse)
+    - [QueryBuildAddressRequest](#cosmwasm.wasm.v1.QueryBuildAddressRequest)
+    - [QueryBuildAddressResponse](#cosmwasm.wasm.v1.QueryBuildAddressResponse)
     - [QueryCodeRequest](#cosmwasm.wasm.v1.QueryCodeRequest)
     - [QueryCodeResponse](#cosmwasm.wasm.v1.QueryCodeResponse)
     - [QueryCodesRequest](#cosmwasm.wasm.v1.QueryCodesRequest)
@@ -65,9 +82,9 @@
     - [QueryRawContractStateResponse](#cosmwasm.wasm.v1.QueryRawContractStateResponse)
     - [QuerySmartContractStateRequest](#cosmwasm.wasm.v1.QuerySmartContractStateRequest)
     - [QuerySmartContractStateResponse](#cosmwasm.wasm.v1.QuerySmartContractStateResponse)
-  
+
     - [Query](#cosmwasm.wasm.v1.Query)
-  
+
 - [cosmwasm/wasm/v1/tx.proto](#cosmwasm/wasm/v1/tx.proto)
     - [AccessConfigUpdate](#cosmwasm.wasm.v1.AccessConfigUpdate)
     - [MsgAddCodeUploadParamsAddresses](#cosmwasm.wasm.v1.MsgAddCodeUploadParamsAddresses)
@@ -104,9 +121,9 @@
     - [MsgUpdateInstantiateConfigResponse](#cosmwasm.wasm.v1.MsgUpdateInstantiateConfigResponse)
     - [MsgUpdateParams](#cosmwasm.wasm.v1.MsgUpdateParams)
     - [MsgUpdateParamsResponse](#cosmwasm.wasm.v1.MsgUpdateParamsResponse)
-  
+
     - [Msg](#cosmwasm.wasm.v1.Msg)
-  
+
 - [Scalar Value Types](#scalar-value-types)
 
 
@@ -635,6 +652,316 @@ MsgIBCSendResponse
 
 
 
+<a name="cosmwasm/wasm/v1/proposal_legacy.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## cosmwasm/wasm/v1/proposal_legacy.proto
+
+
+
+<a name="cosmwasm.wasm.v1.AccessConfigUpdate"></a>
+
+### AccessConfigUpdate
+AccessConfigUpdate contains the code id and the access config to be
+applied.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code_id` | [uint64](#uint64) |  | CodeID is the reference to the stored WASM code to be updated |
+| `instantiate_permission` | [AccessConfig](#cosmwasm.wasm.v1.AccessConfig) |  | InstantiatePermission to apply to the set of code ids |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.ClearAdminProposal"></a>
+
+### ClearAdminProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit ClearAdminProposal. To clear the admin of a contract,
+a simple MsgClearAdmin can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `contract` | [string](#string) |  | Contract is the address of the smart contract |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.ExecuteContractProposal"></a>
+
+### ExecuteContractProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit ExecuteContractProposal. To call execute on a contract,
+a simple MsgExecuteContract can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `run_as` | [string](#string) |  | RunAs is the address that is passed to the contract's environment as sender |
+| `contract` | [string](#string) |  | Contract is the address of the smart contract |
+| `msg` | [bytes](#bytes) |  | Msg json encoded message to be passed to the contract as execute |
+| `funds` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Funds coins that are transferred to the contract on instantiation |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.InstantiateContract2Proposal"></a>
+
+### InstantiateContract2Proposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit InstantiateContract2Proposal. To instantiate contract 2,
+a simple MsgInstantiateContract2 can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `run_as` | [string](#string) |  | RunAs is the address that is passed to the contract's enviroment as sender |
+| `admin` | [string](#string) |  | Admin is an optional address that can execute migrations |
+| `code_id` | [uint64](#uint64) |  | CodeID is the reference to the stored WASM code |
+| `label` | [string](#string) |  | Label is optional metadata to be stored with a constract instance. |
+| `msg` | [bytes](#bytes) |  | Msg json encode message to be passed to the contract on instantiation |
+| `funds` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Funds coins that are transferred to the contract on instantiation |
+| `salt` | [bytes](#bytes) |  | Salt is an arbitrary value provided by the sender. Size can be 1 to 64. |
+| `fix_msg` | [bool](#bool) |  | FixMsg include the msg value into the hash for the predictable address. Default is false |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.InstantiateContractProposal"></a>
+
+### InstantiateContractProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit InstantiateContractProposal. To instantiate a contract,
+a simple MsgInstantiateContract can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `run_as` | [string](#string) |  | RunAs is the address that is passed to the contract's environment as sender |
+| `admin` | [string](#string) |  | Admin is an optional address that can execute migrations |
+| `code_id` | [uint64](#uint64) |  | CodeID is the reference to the stored WASM code |
+| `label` | [string](#string) |  | Label is optional metadata to be stored with a constract instance. |
+| `msg` | [bytes](#bytes) |  | Msg json encoded message to be passed to the contract on instantiation |
+| `funds` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Funds coins that are transferred to the contract on instantiation |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.MigrateContractProposal"></a>
+
+### MigrateContractProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit MigrateContractProposal. To migrate a contract,
+a simple MsgMigrateContract can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text
+
+Note: skipping 3 as this was previously used for unneeded run_as |
+| `contract` | [string](#string) |  | Contract is the address of the smart contract |
+| `code_id` | [uint64](#uint64) |  | CodeID references the new WASM code |
+| `msg` | [bytes](#bytes) |  | Msg json encoded message to be passed to the contract on migration |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.PinCodesProposal"></a>
+
+### PinCodesProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit PinCodesProposal. To pin a set of code ids in the wasmvm
+cache, a simple MsgPinCodes can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `code_ids` | [uint64](#uint64) | repeated | CodeIDs references the new WASM codes |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.StoreAndInstantiateContractProposal"></a>
+
+### StoreAndInstantiateContractProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit StoreAndInstantiateContractProposal. To store and instantiate
+the contract, a simple MsgStoreAndInstantiateContract can be invoked from
+the x/gov module via a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `run_as` | [string](#string) |  | RunAs is the address that is passed to the contract's environment as sender |
+| `wasm_byte_code` | [bytes](#bytes) |  | WASMByteCode can be raw or gzip compressed |
+| `instantiate_permission` | [AccessConfig](#cosmwasm.wasm.v1.AccessConfig) |  | InstantiatePermission to apply on contract creation, optional |
+| `unpin_code` | [bool](#bool) |  | UnpinCode code on upload, optional |
+| `admin` | [string](#string) |  | Admin is an optional address that can execute migrations |
+| `label` | [string](#string) |  | Label is optional metadata to be stored with a constract instance. |
+| `msg` | [bytes](#bytes) |  | Msg json encoded message to be passed to the contract on instantiation |
+| `funds` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Funds coins that are transferred to the contract on instantiation |
+| `source` | [string](#string) |  | Source is the URL where the code is hosted |
+| `builder` | [string](#string) |  | Builder is the docker image used to build the code deterministically, used for smart contract verification |
+| `code_hash` | [bytes](#bytes) |  | CodeHash is the SHA256 sum of the code outputted by builder, used for smart contract verification |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.StoreCodeProposal"></a>
+
+### StoreCodeProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit StoreCodeProposal. To submit WASM code to the system,
+a simple MsgStoreCode can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `run_as` | [string](#string) |  | RunAs is the address that is passed to the contract's environment as sender |
+| `wasm_byte_code` | [bytes](#bytes) |  | WASMByteCode can be raw or gzip compressed |
+| `instantiate_permission` | [AccessConfig](#cosmwasm.wasm.v1.AccessConfig) |  | InstantiatePermission to apply on contract creation, optional |
+| `unpin_code` | [bool](#bool) |  | UnpinCode code on upload, optional |
+| `source` | [string](#string) |  | Source is the URL where the code is hosted |
+| `builder` | [string](#string) |  | Builder is the docker image used to build the code deterministically, used for smart contract verification |
+| `code_hash` | [bytes](#bytes) |  | CodeHash is the SHA256 sum of the code outputted by builder, used for smart contract verification |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.SudoContractProposal"></a>
+
+### SudoContractProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit SudoContractProposal. To call sudo on a contract,
+a simple MsgSudoContract can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `contract` | [string](#string) |  | Contract is the address of the smart contract |
+| `msg` | [bytes](#bytes) |  | Msg json encoded message to be passed to the contract as sudo |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.UnpinCodesProposal"></a>
+
+### UnpinCodesProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit UnpinCodesProposal. To unpin a set of code ids in the wasmvm
+cache, a simple MsgUnpinCodes can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `code_ids` | [uint64](#uint64) | repeated | CodeIDs references the WASM codes |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.UpdateAdminProposal"></a>
+
+### UpdateAdminProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit UpdateAdminProposal. To set an admin for a contract,
+a simple MsgUpdateAdmin can be invoked from the x/gov module via
+a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `new_admin` | [string](#string) |  | NewAdmin address to be set |
+| `contract` | [string](#string) |  | Contract is the address of the smart contract |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.UpdateInstantiateConfigProposal"></a>
+
+### UpdateInstantiateConfigProposal
+Deprecated: Do not use. Since wasmd v0.40, there is no longer a need for
+an explicit UpdateInstantiateConfigProposal. To update instantiate config
+to a set of code ids, a simple MsgUpdateInstantiateConfig can be invoked from
+the x/gov module via a v1 governance proposal.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  | Title is a short summary |
+| `description` | [string](#string) |  | Description is a human readable text |
+| `access_config_updates` | [AccessConfigUpdate](#cosmwasm.wasm.v1.AccessConfigUpdate) | repeated | AccessConfigUpdate contains the list of code ids and the access config to be applied. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="cosmwasm/wasm/v1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -688,6 +1015,41 @@ Query/AllContractState RPC method
 | ----- | ---- | ----- | ----------- |
 | `models` | [Model](#cosmwasm.wasm.v1.Model) | repeated |  |
 | `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.QueryBuildAddressRequest"></a>
+
+### QueryBuildAddressRequest
+QueryBuildAddressRequest is the request type for the Query/BuildAddress RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `code_hash` | [string](#string) |  | CodeHash is the hash of the code |
+| `creator_address` | [string](#string) |  | CreatorAddress is the address of the contract instantiator |
+| `salt` | [string](#string) |  | Salt is a hex encoded salt |
+| `init_args` | [bytes](#bytes) |  | InitArgs are optional json encoded init args to be used in contract address building if provided |
+
+
+
+
+
+
+<a name="cosmwasm.wasm.v1.QueryBuildAddressResponse"></a>
+
+### QueryBuildAddressResponse
+QueryBuildAddressResponse is the response type for the Query/BuildAddress RPC
+method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | Address is the contract address |
 
 
 
@@ -1039,6 +1401,7 @@ Query provides defines the gRPC querier service
 | `PinnedCodes` | [QueryPinnedCodesRequest](#cosmwasm.wasm.v1.QueryPinnedCodesRequest) | [QueryPinnedCodesResponse](#cosmwasm.wasm.v1.QueryPinnedCodesResponse) | PinnedCodes gets the pinned code ids | GET|/cosmwasm/wasm/v1/codes/pinned|
 | `Params` | [QueryParamsRequest](#cosmwasm.wasm.v1.QueryParamsRequest) | [QueryParamsResponse](#cosmwasm.wasm.v1.QueryParamsResponse) | Params gets the module params | GET|/cosmwasm/wasm/v1/codes/params|
 | `ContractsByCreator` | [QueryContractsByCreatorRequest](#cosmwasm.wasm.v1.QueryContractsByCreatorRequest) | [QueryContractsByCreatorResponse](#cosmwasm.wasm.v1.QueryContractsByCreatorResponse) | ContractsByCreator gets the contracts by creator | GET|/cosmwasm/wasm/v1/contracts/creator/{creator_address}|
+| `BuildAddress` | [QueryBuildAddressRequest](#cosmwasm.wasm.v1.QueryBuildAddressRequest) | [QueryBuildAddressResponse](#cosmwasm.wasm.v1.QueryBuildAddressResponse) | BuildAddress builds a contract address | GET|/cosmwasm/wasm/v1/contract/build_address|
 
  <!-- end services -->
 

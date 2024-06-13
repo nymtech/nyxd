@@ -4,7 +4,7 @@ ARG RELEASE_URL=https://github.com/nymtech/nyxd/releases/download/v0.43.0/nyxd-u
 ARG ARCHIVE_NAME=nyxd-ubuntu-22.04.tar.gz
 
 RUN apt update \
-        && apt -y install ca-certificates jq curl vim wget
+  && apt -y install ca-certificates jq curl vim wget
 
 WORKDIR /opt
 
