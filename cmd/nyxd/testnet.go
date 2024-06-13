@@ -39,7 +39,7 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/nymtech/wasmd/app"
+	"github.com/CosmWasm/wasmd/app"
 )
 
 var (
