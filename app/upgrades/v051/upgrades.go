@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/nymtech/nyxd/upgrades"
+	"github.com/nymtech/nyxd/app/upgrades"
 )
 
 // UpgradeName defines the on-chain upgrade name
