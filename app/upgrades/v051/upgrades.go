@@ -1,4 +1,4 @@
-package v050
+package v051
 
 import (
 	"context"
@@ -37,19 +37,38 @@ func CreateUpgradeHandler(
 		sdkCtx := sdk.UnwrapSDKContext(ctx)
 		logger := sdkCtx.Logger().With("upgrade", UpgradeName)
 
-		logger.Info(fmt.Sprintf("== Starting %s Upgrade... ==", UpgradeName))
-		logger.Info(fmt.Sprintf("Pre-upgrade map: %v", fromVM))
-		logger.Info("== Running any configured module migrations == ")
+		logger.Info(fmt.Sprintf("Starting %s upgrade", UpgradeName))
+
+		// Run all configured migrations within the modules
+		logger.Info("Running any configured module migrations")
 		newVersionMap, err := mm.RunMigrations(ctx, configurator, fromVM)
 		if err != nil {
 			return nil, err
 		}
-		logger.Info("== Module migrations complete == ")
-		logger.Info(fmt.Sprintf("Post-upgrade map: %v", newVersionMap))
-		logger.Info("== Upgrade complete! == ")
+		logger.Info("Module migrations complete. Printing summary : ")
 
-		// TODO : We should probably assert invariants after every upgrade,
-		// but this one doesn't change much.
+		// Generate summary
+		for moduleName, oldVersion := range fromVM {
+			if newVersion, ok := newVersionMap[moduleName]; ok {
+				if oldVersion != newVersion {
+					logger.Info(fmt.Sprintf("Module %s migrated from version %d to version %d", moduleName, oldVersion, newVersion))
+				}
+			} else {
+				logger.Info(fmt.Sprintf("Module %s was removed during the upgrade", moduleName))
+			}
+		}
+
+		for moduleName, newVersion := range newVersionMap {
+			if _, ok := fromVM[moduleName]; !ok {
+				logger.Info(fmt.Sprintf("Module %s was added during the upgrade with version %d", moduleName, newVersion))
+			}
+		}
+
+		// Check if we're good after the upgrade
+		logger.Info("Asserting invariants post-upgrade")
+		ak.CrisisKeeper.AssertInvariants(sdkCtx)
+
+		logger.Info("Upgrade complete!")
 
 		return newVersionMap, err
 
