@@ -84,7 +84,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -891,7 +890,7 @@ func NewWasmApp(
 	// Please note that changing any of the anteHandler or postHandler chain is
 	// likely to be a state-machine breaking change, which needs a coordinated
 	// upgrade.
-	app.setPostHandler()
+	// app.setPostHandler()
 
 	// At startup, after all modules have been registered, check that all proto
 	// annotations are correct.
@@ -946,16 +945,16 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, wasmConfig wasmtype
 	app.SetAnteHandler(anteHandler)
 }
 
-func (app *WasmApp) setPostHandler() {
-	postHandler, err := posthandler.NewPostHandler(
-		posthandler.HandlerOptions{},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	app.SetPostHandler(postHandler)
-}
+// func (app *WasmApp) setPostHandler() {
+//	postHandler, err := posthandler.NewPostHandler(
+//		posthandler.HandlerOptions{},
+//	)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	app.SetPostHandler(postHandler)
+//}
 
 // Name returns the name of the App
 func (app *WasmApp) Name() string { return app.BaseApp.Name() }
