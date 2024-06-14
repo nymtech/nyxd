@@ -71,6 +71,5 @@ func CreateUpgradeHandler(
 		logger.Info("Upgrade complete!")
 
 		return newVersionMap, err
-
 	}
 }
