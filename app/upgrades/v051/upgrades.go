@@ -46,7 +46,7 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 		logger.Info("Module migrations complete. Printing summary : ")
-
+		logger.Info("==== Migrations summary start =====")
 		// Generate summary
 		for moduleName, oldVersion := range fromVM {
 			if newVersion, ok := newVersionMap[moduleName]; ok {
@@ -57,6 +57,8 @@ func CreateUpgradeHandler(
 				logger.Info(fmt.Sprintf("Module %s was removed during the upgrade", moduleName))
 			}
 		}
+
+		logger.Info("==== Migrations summary end =====")
 
 		for moduleName, newVersion := range newVersionMap {
 			if _, ok := fromVM[moduleName]; !ok {

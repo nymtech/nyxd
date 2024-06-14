@@ -26,6 +26,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 		ConsensusParamsKeeper: &app.ConsensusParamsKeeper,
 		CapabilityKeeper:      app.CapabilityKeeper,
 		IBCKeeper:             app.IBCKeeper,
+		CrisisKeeper:          app.CrisisKeeper,
 		Codec:                 app.appCodec,
 		GetStoreKey:           app.GetKey,
 	}
