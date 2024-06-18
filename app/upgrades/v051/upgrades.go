@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
 	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -58,19 +59,38 @@ func CreateUpgradeHandler(
 			}
 		}
 
-		logger.Info("==== Migrations summary end =====")
-
 		for moduleName, newVersion := range newVersionMap {
 			if _, ok := fromVM[moduleName]; !ok {
 				logger.Info(fmt.Sprintf("Module %s was added during the upgrade with version %d", moduleName, newVersion))
 			}
 		}
 
+		logger.Info("==== Migrations summary end =====")
+
+		// Set governance module parameters
+		logger.Info("==== Setting governance parameters =====")
+		govParams, err := ak.GovKeeper.Params.Get(sdkCtx)
+
+		if err != nil {
+			panic("Failed to get governance parameters")
+		}
+
+		// 5 times the deposit of regular proposals for expedited proposals
+		depositDenom, depositAmount := govParams.MinDeposit[0].Denom, govParams.MinDeposit[0].Amount.Mul(sdkmath.NewInt(5))
+		govParams.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewInt64Coin(depositDenom, depositAmount.Int64()))
+		govParams.ProposalCancelRatio = sdkmath.LegacyZeroDec().String()
+
+		ok := ak.GovKeeper.Params.Set(ctx, govParams)
+
+		if ok != nil {
+			panic("Failed to set governance parameters")
+		}
+
 		// Check if we're good after the upgrade
-		logger.Info("Asserting invariants post-upgrade")
+		logger.Info(" === Asserting invariants post-upgrade === ")
 		ak.CrisisKeeper.AssertInvariants(sdkCtx)
 
-		logger.Info("Upgrade complete!")
+		logger.Info("Upgrade complete! 🎉")
 
 		return newVersionMap, err
 	}
