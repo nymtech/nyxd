@@ -38,7 +38,8 @@ yes "${PASSPHRASE}" | ./nyxd keys add nyxd_admin 2>&1 >/dev/null | tail -n 1 >${
 # sed -i 's/fast_sync = true/fast_sync = false/' $HOME/.nyxd/config/config.toml
 
 sed -i '/\[api\]/,/^\[/ s/enable = false/enable = true/' $HOME/.nyxd/config/app.toml
-sed -i '/127.0.0.1:26656/0.0.0.0:26656/' $HOME/.nyxd/config/app.toml
+sed -i 's/127.0.0.1:26657/0.0.0.0:26657/' $HOME/.nyxd/config/config.toml
+sed -i 's/localhost:1317/0.0.0.0:1317/' $HOME/.nyxd/config/app.toml
 sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.025unym,0.025unyx"/' $HOME/.nyxd/config/app.toml
 sed -i 's/swagger = false/swagger = true/' $HOME/.nyxd/config/app.toml
 sed -i 's/cors_allowed_origins = \["\*"\]/cors_allowed_origins = \[\]/' $HOME/.nyxd/config/app.toml
