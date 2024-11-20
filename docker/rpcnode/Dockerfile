@@ -4,31 +4,33 @@ ARG UID=1001
 ARG GID=1001
 ARG NYM_CLI_GIT_TAG=master
 ARG WASMD_VERSION=v0.43.0
+ARG RETAIN_BLOCKS
 
-ENV NAME=$NAME
-ENV PEERS=$PEERS
-ENV SYNC_BLOCK=$SYNC_BLOCK
-ENV GENESIS_FILE=$GENESIS_FILE
-ENV VALIDATOR_ENDPOINT=$VALIDATOR_ENDPOINT
+####################################
+# Necessary env variables:
+# CHAIN_ID
+# DENOM
+# STAKE_DENOM
+# VALIDATOR_ENDPOINT
+####################################
+
+RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
+  echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
+  echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
 
 RUN apt update && apt upgrade -y \
-  && apt -y install ca-certificates jq curl vim wget git screen build-essential unzip
+  && apt -y install ca-certificates jq curl vim wget
 
 # Set up a nym user
 RUN groupadd -g "${GID}" nym \
   && useradd --create-home --no-log-init -u "${UID}" -g "${GID}" nym
 
-WORKDIR /root
-
-# Download aws and install other tools needed
-# RUN curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-# RUN unzip awscliv2.zip
+WORKDIR /home/nym
 
 # Download nyxd, libwasmvm and nym-cli from our Github releases
 RUN wget https://builds.ci.nymte.ch/${NYM_CLI_GIT_TAG}/nym-cli
 RUN wget https://github.com/nymtech/nyxd/releases/download/${WASMD_VERSION}/nyxd-ubuntu-22.04.tar.gz
 RUN tar -zxvf nyxd-ubuntu-22.04.tar.gz
-RUN rm -f nyxd-ubuntu-22.04.tar.gz
 
 RUN chmod u+x nyxd
 RUN chmod u+x nym-cli
@@ -46,11 +48,10 @@ RUN mkdir ".nyxd"
 RUN mkdir output
 RUN chown -R nym:nym ./
 
-VOLUME /root/.nyxd
-VOLUME /root/output
+VOLUME /home/nym/.nyxd
+VOLUME /home/nym/output
 
 COPY start.sh .
-COPY create_validator.sh .
-RUN chmod u+x *.sh
+RUN chmod +x *.sh
 
 ENTRYPOINT ["./start.sh"]

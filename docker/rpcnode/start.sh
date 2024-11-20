@@ -1,59 +1,40 @@
 #!/usr/bin/env bash
 
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":/root
-PASSPHRASE=passphrase
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":/home/nym
 APP_NAME=nyxd
-ADDRESSES_DIRECTORY="/root/output"
-export PEERS=${PEERS}
-RPC_ENDPOINT="${VALIDATOR_ENDPOINT}:443"
-LATEST_HEIGHT="$(curl -s ${VALIDATOR_ENDPOINT}/block | jq -r .result.block.header.height)"
-GENESIS_FILE=$VALIDATOR_ENDPOINT/genesis
-
-INTERVAL=1000
-BLOCK_HEIGHT=$(expr $LATEST_HEIGHT - $INTERVAL)
-TRUST_HASH="$(curl -s \"${VALIDATOR_ENDPOINT}/block?height=$BLOCK_HEIGHT\" | jq -r .result.block_id.hash)"
+VALIDATOR_DATA_DIRECTORY="/home/nym/.${APP_NAME}"
 
 # initialise the validator
-echo "Initialising the validator with name $NAME"
-./${APP_NAME} init ${NAME} --chain-id "${CHAIN_ID}" 2>/dev/null
-echo "Initialised the validator, sleeping 3 seconds."
-sleep 3
+./${APP_NAME} init "${CHAIN_ID}" --chain-id "${CHAIN_ID}" --default-denom ${STAKE_DENOM} 2>/dev/null
 
-cd /root/.nyxd/config
-rm -f genesis.json
-echo "Removed existing genesis, now curling new endpoint: ${GENESIS_FILE}"
-curl "${GENESIS_FILE}" | jq '.result.genesis' >genesis.json
-echo "Fetched the new genesis"
+sleep 2
 
-cd $HOME
-echo "Validating genesis file.."
-./${APP_NAME} genesis validate-genesis
-echo "Genesis validated."
-#  create a new node_admin account and add it to keychain
-yes "${PASSPHRASE}" | ./nyxd keys add nyxd_admin 2>&1 >/dev/null | tail -n 1 >${ADDRESSES_DIRECTORY}/node_admin_mnemonic
+echo "changing params"
+sed -i 's/minimum-gas-prices = "0stake"/minimum-gas-prices = "0.025'${STAKE_DENOM}',0.025'${DENOM}'"/' "${VALIDATOR_DATA_DIRECTORY}/config/app.toml"
+sed -i '0,/enable = false/s//enable = true/' "${VALIDATOR_DATA_DIRECTORY}/config/app.toml"
 
-# edit config.toml and app.toml files
+# Network requests
+sed -i 's/cors_allowed_origins = \[\]/cors_allowed_origins = \["*"\]/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
+sed -i 's/laddr = "tcp:\/\/127.0.0.1:26657"/laddr = "tcp:\/\/0.0.0.0:26657"/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
+sed -i 's/address = "tcp:\/\/localhost:1317"/address = "tcp:\/\/0.0.0.0:1317"/' "${VALIDATOR_DATA_DIRECTORY}/config/app.toml"
 
-# only uncomment this if all blocks to be synced need to be verified; note that setting fast_sync to false will slow down the syncing process
-# sed -i 's/fast_sync = true/fast_sync = false/' $HOME/.nyxd/config/config.toml
+# Set pruning settings
+sed -i 's/pruning = "default"/pruning = "custom"/' "${HOME}/.nyxd/config/config.toml"
+sed -i 's/pruning-keep-recent = "0"/pruning-keep-recent = "750000"/' "${HOME}/.nyxd/config/config.toml"
+sed -i 's/pruning-interval = "0"/pruning-interval = "100"/' "${HOME}/.nyxd/config/config.toml"
 
-sed -i '/\[api\]/,/^\[/ s/enable = false/enable = true/' $HOME/.nyxd/config/app.toml
-sed -i 's/127.0.0.1:26657/0.0.0.0:26657/' $HOME/.nyxd/config/config.toml
-sed -i 's/localhost:1317/0.0.0.0:1317/' $HOME/.nyxd/config/app.toml
-sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.025unym,0.025unyx"/' $HOME/.nyxd/config/app.toml
-sed -i 's/swagger = false/swagger = true/' $HOME/.nyxd/config/app.toml
-sed -i 's/cors_allowed_origins = \["\*"\]/cors_allowed_origins = \[\]/' $HOME/.nyxd/config/app.toml
-sed -i 's/create_empty_blocks = false/create_empty_blocks = true/' $HOME/.nyxd/config/app.toml
-sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$PEERS\"/" $HOME/.nyxd/config/config.toml
+echo "params changed"
 
-if [ "$SYNC_BLOCK" == "CUSTOM" ]; then
-	sed -i "s/rpc_servers = \"\"/rpc_servers = \"${RPC_ENDPOINT},${RPC_ENDPOINT}\"|" $HOME/.nyxd/config/config.toml
-	sed -i "s/trust_height = 0/trust_height = ${BLOCK_HEIGHT}/" $HOME/.nyxd/config/config.toml
-	sed -i "s/trust_hash = \"\"/trust_hash = \"${TRUST_HASH}\"/" $HOME/.nyxd/config/config.toml
-fi
+# statesync so we don't catch up from the start
+SNAP_RPC="${VALIDATOR_ENDPOINT}:443"
+LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height)
+BLOCK_HEIGHT=$((LATEST_HEIGHT - 2000))
+TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
 
-echo "Starting nyxd.."
+sed -i "s|^persistent_peers =.*|persistent_peers = \"$PEERS\"|" "${HOME}/.nyxd/config/config.toml"
+sed -i 's/^enable = false/enable = true/' "${HOME}/.nyxd/config/config.toml"
+sed -i "s|^rpc_servers =.*|rpc_servers = \"$SNAP_RPC,$SNAP_RPC\"|" "${HOME}/.nyxd/config/config.toml"
+sed -i "s|^trust_height =.*|trust_height = $BLOCK_HEIGHT|" "${HOME}/.nyxd/config/config.toml"
+sed -i "s|^trust_hash =.*|trust_hash = \"$TRUST_HASH\"|" "${HOME}/.nyxd/config/config.toml"
+
 ./${APP_NAME} start &
-sleep 10
-
-sleep infinity
