@@ -19,7 +19,7 @@ sed -i '0,/enable = false/s//enable = true/' "${VALIDATOR_DATA_DIRECTORY}/config
 sed -i 's/cors_allowed_origins = \[\]/cors_allowed_origins = \["*"\]/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
 sed -i 's/laddr = "tcp:\/\/127.0.0.1:26657"/laddr = "tcp:\/\/0.0.0.0:26657"/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
 sed -i 's/laddr = "tcp:\/\/127.0.0.1:26656"/laddr = "tcp:\/\/0.0.0.0:26656"/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
-sed -i 's/external_address = ""/external_address = "'${RPC_FQDN}':26656"/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
+sed -i 's#external_address = ""#external_address = "'${RPC_FQDN}':26656"#' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
 sed -i 's/address = "tcp:\/\/localhost:1317"/address = "tcp:\/\/0.0.0.0:1317"/' "${VALIDATOR_DATA_DIRECTORY}/config/app.toml"
 
 # Set pruning settings
