@@ -38,6 +38,7 @@ yes "${PASSPHRASE}" | ./nyxd keys add nyxd_admin 2>&1 >/dev/null | tail -n 1 >${
 # sed -i 's/fast_sync = true/fast_sync = false/' $HOME/.nyxd/config/config.toml
 
 sed -i '/\[api\]/,/^\[/ s/enable = false/enable = true/' $HOME/.nyxd/config/app.toml
+sed -i '/127.0.0.1:26656/0.0.0.0:26656/' $HOME/.nyxd/config/app.toml
 sed -i 's/minimum-gas-prices = ""/minimum-gas-prices = "0.025unym,0.025unyx"/' $HOME/.nyxd/config/app.toml
 sed -i 's/swagger = false/swagger = true/' $HOME/.nyxd/config/app.toml
 sed -i 's/cors_allowed_origins = \["\*"\]/cors_allowed_origins = \[\]/' $HOME/.nyxd/config/app.toml
@@ -45,9 +46,9 @@ sed -i 's/create_empty_blocks = false/create_empty_blocks = true/' $HOME/.nyxd/c
 sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$PEERS\"/" $HOME/.nyxd/config/config.toml
 
 if [ "$SYNC_BLOCK" == "CUSTOM" ]; then
-  sed -i "s/rpc_servers = \"\"/rpc_servers = \"${RPC_ENDPOINT},${RPC_ENDPOINT}\"|" $HOME/.nyxd/config/config.toml
-  sed -i "s/trust_height = 0/trust_height = ${BLOCK_HEIGHT}/" $HOME/.nyxd/config/config.toml
-  sed -i "s/trust_hash = \"\"/trust_hash = \"${TRUST_HASH}\"/" $HOME/.nyxd/config/config.toml
+	sed -i "s/rpc_servers = \"\"/rpc_servers = \"${RPC_ENDPOINT},${RPC_ENDPOINT}\"|" $HOME/.nyxd/config/config.toml
+	sed -i "s/trust_height = 0/trust_height = ${BLOCK_HEIGHT}/" $HOME/.nyxd/config/config.toml
+	sed -i "s/trust_hash = \"\"/trust_hash = \"${TRUST_HASH}\"/" $HOME/.nyxd/config/config.toml
 fi
 
 echo "Starting nyxd.."
