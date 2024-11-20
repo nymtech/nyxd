@@ -5,6 +5,7 @@ set -e
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":/home/nym
 APP_NAME=nyxd
 VALIDATOR_DATA_DIRECTORY="/home/nym/.${APP_NAME}"
+EXPOSED_PORT=${EXPOSED_PORT:-26656}
 
 # initialise the validator
 ./${APP_NAME} init "${CHAIN_ID}" --chain-id "${CHAIN_ID}" --default-denom ${STAKE_DENOM}
@@ -18,8 +19,8 @@ sed -i '0,/enable = false/s//enable = true/' "${VALIDATOR_DATA_DIRECTORY}/config
 # Network requests
 sed -i 's/cors_allowed_origins = \[\]/cors_allowed_origins = \["*"\]/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
 sed -i 's/laddr = "tcp:\/\/127.0.0.1:26657"/laddr = "tcp:\/\/0.0.0.0:26657"/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
-sed -i 's/laddr = "tcp:\/\/127.0.0.1:26656"/laddr = "tcp:\/\/0.0.0.0:26656"/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
-sed -i 's#external_address = ""#external_address = "'${RPC_FQDN}':26656"#' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
+sed -i 's/26656/'${EXPOSED_PORT}'/' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
+sed -i 's#external_address = ""#external_address = "'${RPC_FQDN}':'${EXPOSED_PORT}'"#' "${VALIDATOR_DATA_DIRECTORY}/config/config.toml"
 sed -i 's/address = "tcp:\/\/localhost:1317"/address = "tcp:\/\/0.0.0.0:1317"/' "${VALIDATOR_DATA_DIRECTORY}/config/app.toml"
 
 # Set pruning settings
