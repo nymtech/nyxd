@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 
+set -e
+
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":/home/nym
 APP_NAME=nyxd
 VALIDATOR_DATA_DIRECTORY="/home/nym/.${APP_NAME}"
 
 # initialise the validator
-./${APP_NAME} init "${CHAIN_ID}" --chain-id "${CHAIN_ID}" --default-denom ${STAKE_DENOM} 2>/dev/null
+./${APP_NAME} init "${CHAIN_ID}" --chain-id "${CHAIN_ID}" --default-denom ${STAKE_DENOM}
 
 sleep 2
 

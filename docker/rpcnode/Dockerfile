@@ -15,10 +15,6 @@ ARG RETAIN_BLOCKS
 # PEERS
 ####################################
 
-RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
-  echo "Acquire::http::No-Cache true;" >> /etc/apt/apt.conf.d/99custom && \
-  echo "Acquire::BrokenProxy    true;" >> /etc/apt/apt.conf.d/99custom
-
 RUN apt update && apt upgrade -y \
   && apt -y install ca-certificates jq curl vim wget
 
