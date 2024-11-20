@@ -12,6 +12,7 @@ ARG RETAIN_BLOCKS
 # DENOM
 # STAKE_DENOM
 # VALIDATOR_ENDPOINT
+# PEERS
 ####################################
 
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom && \
@@ -53,5 +54,7 @@ VOLUME /home/nym/output
 
 COPY start.sh .
 RUN chmod +x *.sh
+
+USER nym
 
 ENTRYPOINT ["./start.sh"]

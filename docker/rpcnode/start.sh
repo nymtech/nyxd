@@ -37,4 +37,4 @@ sed -i "s|^rpc_servers =.*|rpc_servers = \"$SNAP_RPC,$SNAP_RPC\"|" "${HOME}/.nyx
 sed -i "s|^trust_height =.*|trust_height = $BLOCK_HEIGHT|" "${HOME}/.nyxd/config/config.toml"
 sed -i "s|^trust_hash =.*|trust_hash = \"$TRUST_HASH\"|" "${HOME}/.nyxd/config/config.toml"
 
-./${APP_NAME} start &
+./${APP_NAME} start
