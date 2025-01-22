@@ -8,6 +8,8 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
@@ -15,7 +17,7 @@ import (
 )
 
 // UpgradeName defines the on-chain upgrade name
-const UpgradeName = "v0.51"
+const UpgradeName = "v0.54-doubledip"
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
@@ -26,6 +28,42 @@ var Upgrade = upgrades.Upgrade{
 		},
 		Deleted: []string{},
 	},
+}
+
+func CompleteAccountVesting(ctx context.Context, ak *upgrades.AppKeepers, address string) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	logger := sdkCtx.Logger()
+
+	// Get the account
+	accountAddr, err := sdk.AccAddressFromBech32(address)
+	if err != nil {
+		return fmt.Errorf("invalid address: %w", err)
+	}
+
+	account := ak.AccountKeeper.GetAccount(sdkCtx, accountAddr)
+	if account == nil {
+		return fmt.Errorf("account not found: %s", address)
+	}
+
+	// Check if it's a vesting account
+	vestingAcc, ok := account.(*vestingtypes.ContinuousVestingAccount)
+	if !ok {
+		return fmt.Errorf("account is not a vesting account: %s", address)
+	}
+
+	// Get the original vesting coins for logging
+	originalVesting := vestingAcc.GetOriginalVesting()
+
+	// Get the base account and set it directly
+	// This removes all vesting schedules and makes all tokens available
+	baseAcc := vestingAcc.BaseAccount
+	ak.AccountKeeper.SetAccount(sdkCtx, baseAcc)
+
+	logger.Info("Successfully removed vesting and released all tokens",
+		"address", address,
+		"released_amount", originalVesting.String())
+
+	return nil
 }
 
 func CreateUpgradeHandler(
@@ -84,6 +122,11 @@ func CreateUpgradeHandler(
 
 		if ok != nil {
 			panic("Failed to set governance parameters")
+		}
+
+		// Complete vesting on an abandoned validator account
+		if err := CompleteAccountVesting(ctx, ak, "n1kah7954n5tcdkgyc0pgfqm8afgeld8s992zj95"); err != nil {
+			return nil, fmt.Errorf("failed to complete account vesting: %w", err)
 		}
 
 		// Check if we're good after the upgrade

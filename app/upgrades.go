@@ -7,11 +7,12 @@ import (
 
 	"github.com/nymtech/nyxd/app/upgrades"
 	"github.com/nymtech/nyxd/app/upgrades/noop"
-	v051 "github.com/nymtech/nyxd/app/upgrades/v051"
+	v054 "github.com/nymtech/nyxd/app/upgrades/v054"
+	v054doubledip "github.com/nymtech/nyxd/app/upgrades/v054-doubledip"
 )
 
 // Upgrades list of chain upgrades
-var Upgrades = []upgrades.Upgrade{v051.Upgrade}
+var Upgrades = []upgrades.Upgrade{v054doubledip.Upgrade, v054.Upgrade}
 
 // RegisterUpgradeHandlers registers the chain upgrade handlers
 func (app *WasmApp) RegisterUpgradeHandlers() {
@@ -56,7 +57,7 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 	// register store loader for current upgrade
 	for _, upgrade := range Upgrades {
 		if upgradeInfo.Name == upgrade.UpgradeName {
-			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades)) // nolint:gosec
+			app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 			break
 		}
 	}
