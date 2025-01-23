@@ -3,14 +3,15 @@ package v054
 import (
 	"context"
 	"fmt"
-	"time"
 
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
+	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/nymtech/nyxd/app/upgrades"
 )
@@ -22,7 +23,9 @@ var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
-		Added:   []string{},
+		Added: []string{
+			circuittypes.ModuleName,
+		},
 		Deleted: []string{},
 	},
 }
@@ -114,8 +117,6 @@ func CreateUpgradeHandler(
 		depositDenom, depositAmount := govParams.MinDeposit[0].Denom, govParams.MinDeposit[0].Amount.Mul(sdkmath.NewInt(5))
 		govParams.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewInt64Coin(depositDenom, depositAmount.Int64()))
 		govParams.ProposalCancelRatio = sdkmath.LegacyZeroDec().String()
-		expeditedPeriod := time.Duration(govParams.VotingPeriod.Seconds() / 2)
-		govParams.ExpeditedVotingPeriod = &expeditedPeriod
 
 		ok := ak.GovKeeper.Params.Set(ctx, govParams)
 

@@ -1,31 +1,28 @@
-package v054doubledip
+package v054testnet
 
 import (
 	"context"
 	"fmt"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	circuittypes "cosmossdk.io/x/circuit/types"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/nymtech/nyxd/app/upgrades"
 )
 
 // UpgradeName defines the on-chain upgrade name
-const UpgradeName = "v0.54-doubledip"
+const UpgradeName = "v0.54-testnet"
 
 var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
-		Added: []string{
-			circuittypes.ModuleName,
-		},
+		Added:   []string{},
 		Deleted: []string{},
 	},
 }
@@ -117,6 +114,8 @@ func CreateUpgradeHandler(
 		depositDenom, depositAmount := govParams.MinDeposit[0].Denom, govParams.MinDeposit[0].Amount.Mul(sdkmath.NewInt(5))
 		govParams.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewInt64Coin(depositDenom, depositAmount.Int64()))
 		govParams.ProposalCancelRatio = sdkmath.LegacyZeroDec().String()
+		expeditedPeriod := time.Duration(govParams.VotingPeriod.Seconds() / 2)
+		govParams.ExpeditedVotingPeriod = &expeditedPeriod
 
 		ok := ak.GovKeeper.Params.Set(ctx, govParams)
 
