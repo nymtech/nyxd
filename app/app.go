@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -1340,28 +1339,28 @@ func InitWasmAppForTestnet(app *WasmApp, newValAddr []byte, newValPubKey crypto.
 	}
 
 	// GOV
-	// Set shorter voting periods for testnet
-	govParams, err := app.GovKeeper.Params.Get(ctx)
-	if err != nil {
-		panic(err)
-	}
-	votingPeriod := time.Minute * 2
-	//expeditedVotingPeriod := time.Minute
-	govParams.VotingPeriod = &votingPeriod
-	//govParams.ExpeditedVotingPeriod = &expeditedVotingPeriod
-	govParams.MinDeposit = sdk.NewCoins(sdk.NewCoin("unyx", sdkmath.NewInt(100000000)))
-	govParams.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin("unyx", sdkmath.NewInt(150000000)))
-	err = app.GovKeeper.Params.Set(ctx, govParams)
-	if err != nil {
-		panic(err)
-	}
+	// // Set shorter voting periods for testnet
+	// govParams, err := app.GovKeeper.Params.Get(ctx)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// votingPeriod := time.Minute * 2
+	// //expeditedVotingPeriod := time.Minute
+	// govParams.VotingPeriod = &votingPeriod
+	// //govParams.ExpeditedVotingPeriod = &expeditedVotingPeriod
+	// govParams.MinDeposit = sdk.NewCoins(sdk.NewCoin("unyx", sdkmath.NewInt(100000000)))
+	// govParams.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin("unyx", sdkmath.NewInt(150000000)))
+	// err = app.GovKeeper.Params.Set(ctx, govParams)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	// BANK
 	// Fund test accounts
 	testAccounts := []sdk.AccAddress{
-		sdk.MustAccAddressFromBech32("n1cyyzpxplxdzkeea7kwsydadg87357qnahakaks"),
-		sdk.MustAccAddressFromBech32("n1qwexv7c6sm95lwhzn9027vyu2ccneaqad4w8ka"),
-		sdk.MustAccAddressFromBech32("n14hcxlnwlqtq75ttaxf674vk6mafspg8xwgnn53"),
+		sdk.MustAccAddressFromBech32("n1yf8syypl2arj0p94d7kh4v4lqqlratfzdwje9p"),
+		sdk.MustAccAddressFromBech32("n1du0dtepk5nepu52fnhnn3fjskypxyfq8avzkna"),
+		sdk.MustAccAddressFromBech32("n1ay66l60qfckfwhf48fll6anp469yerw0n4rwt0"),
 	}
 
 	defaultCoins := sdk.NewCoins(
