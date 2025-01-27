@@ -6,18 +6,24 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"path/filepath"
 	"time"
 
 	cmtconfig "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/crypto/ed25519"
+	"github.com/cometbft/cometbft/libs/bytes"
 	cmttime "github.com/cometbft/cometbft/types/time"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 	"cosmossdk.io/math/unsafe"
+	dbm "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -28,8 +34,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/server"
 	srvconfig "github.com/cosmos/cosmos-sdk/server/config"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
+	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -38,6 +46,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"encoding/base64"
 
 	"github.com/nymtech/nyxd/app"
 )
@@ -578,4 +588,94 @@ func startTestnet(cmd *cobra.Command, args startArgs) error {
 	testnet.Cleanup()
 
 	return nil
+}
+
+func newTestnetApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts servertypes.AppOptions) servertypes.Application {
+	// Create an app and type cast to an OsmosisApp
+	baseApp := newApp(logger, db, traceStore, appOpts)
+	nyxApp, ok := baseApp.(*app.WasmApp)
+	if !ok {
+		panic("app created from newApp is not of type nyxApp")
+	}
+
+	newValAddr, ok := appOpts.Get(server.KeyNewValAddr).(bytes.HexBytes)
+	if !ok {
+		panic("newValAddr is not of type bytes.HexBytes")
+	}
+	newValPubKey, ok := appOpts.Get(server.KeyUserPubKey).(crypto.PubKey)
+	if !ok {
+		panic("newValPubKey is not of type crypto.PubKey")
+	}
+	newOperatorAddress, ok := appOpts.Get(server.KeyNewOpAddr).(string)
+	if !ok {
+		panic("newOperatorAddress is not of type string")
+	}
+	upgradeToTrigger, ok := appOpts.Get(server.KeyTriggerTestnetUpgrade).(string)
+	if !ok {
+		panic("upgradeToTrigger is not of type string")
+	}
+
+	// Make modifications to the normal OsmosisApp required to run the network locally
+	nyxApp = app.InitWasmAppForTestnet(nyxApp, newValAddr, newValPubKey, newOperatorAddress, upgradeToTrigger)
+	return nyxApp
+}
+
+func testnetInitCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "testnet-init [validator-address] [validator-pubkey] [operator-address] [upgrade-name]",
+		Short: "Initialize testnet with custom settings",
+		Args:  cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			serverCtx := server.GetServerContextFromCmd(cmd)
+
+			// Parse validator address
+			valAddr := []byte(args[0])
+
+			// Parse validator pubkey from JSON
+			var pubKeyJSON struct {
+				Type string `json:"@type"`
+				Key  string `json:"key"`
+			}
+			if err := json.Unmarshal([]byte(args[1]), &pubKeyJSON); err != nil {
+				return fmt.Errorf("error parsing validator pubkey JSON: %w", err)
+			}
+
+			// Decode the base64 key
+			pubKeyBytes, err := base64.StdEncoding.DecodeString(pubKeyJSON.Key)
+			if err != nil {
+				return fmt.Errorf("error decoding pubkey base64: %w", err)
+			}
+
+			// Create Ed25519 pubkey
+			pubKey := ed25519.PubKey(pubKeyBytes)
+
+			// Get operator address
+			operatorAddr := args[2]
+
+			// Get upgrade name
+			upgradeName := args[3]
+
+			// Create new app instance with proper codec configuration
+			db := dbm.NewMemDB()
+			appOptions := simtestutil.NewAppOptionsWithFlagHome(serverCtx.Config.RootDir)
+
+			logger := serverCtx.Logger
+			nyxApp := app.NewWasmApp(
+				logger,
+				db,
+				nil,
+				true,
+				appOptions,
+				nil,
+			)
+
+			// Initialize testnet settings
+			app.InitWasmAppForTestnet(nyxApp, valAddr, pubKey, operatorAddr, upgradeName)
+
+			fmt.Printf("Successfully initialized testnet with validator %s\n", operatorAddr)
+			return nil
+		},
+	}
+
+	return cmd
 }

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -71,7 +72,7 @@ import (
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/address"
-	"github.com/cosmos/cosmos-sdk/codec/types"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	runtimeservices "github.com/cosmos/cosmos-sdk/runtime/services"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -132,12 +133,16 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/cometbft/cometbft/crypto"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 )
 
-const appName = "WasmApp"
+const appName = "NyxApp"
 
 // We pull these out so we can set them with LDFLAGS in the Makefile
 var (
@@ -193,7 +198,7 @@ type WasmApp struct {
 	legacyAmino       *codec.LegacyAmino
 	appCodec          codec.Codec
 	txConfig          client.TxConfig
-	interfaceRegistry types.InterfaceRegistry
+	interfaceRegistry codectypes.InterfaceRegistry
 
 	// keys to access the substores
 	keys    map[string]*storetypes.KVStoreKey
@@ -255,7 +260,7 @@ func NewWasmApp(
 	wasmOpts []wasmkeeper.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *WasmApp {
-	interfaceRegistry, err := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
+	interfaceRegistry, err := codectypes.NewInterfaceRegistryWithOptions(codectypes.InterfaceRegistryOptions{
 		ProtoFiles: proto.HybridResolver,
 		SigningOptions: signing.Options{
 			AddressCodec: address.Bech32Codec{
@@ -1032,7 +1037,7 @@ func (app *WasmApp) AppCodec() codec.Codec {
 }
 
 // InterfaceRegistry returns WasmApp's InterfaceRegistry
-func (app *WasmApp) InterfaceRegistry() types.InterfaceRegistry {
+func (app *WasmApp) InterfaceRegistry() codectypes.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
@@ -1211,4 +1216,181 @@ func OverrideWasmVariables() {
 	// Override Wasm size limitation from WASMD.
 	wasmtypes.MaxWasmSize = 1256 * 1024 // Set MaxWasmSize to 1.2MB
 	wasmtypes.MaxProposalWasmSize = wasmtypes.MaxWasmSize
+}
+
+// InitWasmAppForTestnet initializes the app for testnet with custom settings
+func InitWasmAppForTestnet(app *WasmApp, newValAddr []byte, newValPubKey crypto.PubKey, newOperatorAddress, upgradeToTrigger string) *WasmApp {
+	ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+
+	// STAKING
+	// Create Validator struct for our new validator
+	pubkey := &ed25519.PubKey{Key: newValPubKey.Bytes()}
+	pubkeyAny, err := codectypes.NewAnyWithValue(pubkey)
+	if err != nil {
+		panic(err)
+	}
+
+	// Convert operator address
+	_, bz, err := bech32.DecodeAndConvert(newOperatorAddress)
+	if err != nil {
+		panic(err)
+	}
+	bech32Addr, err := bech32.ConvertAndEncode("nvaloper", bz)
+	if err != nil {
+		panic(err)
+	}
+
+	// Create new validator
+	newVal := stakingtypes.Validator{
+		OperatorAddress: bech32Addr,
+		ConsensusPubkey: pubkeyAny,
+		Jailed:          false,
+		Status:          stakingtypes.Bonded,
+		Tokens:          sdkmath.NewInt(900000000000000),
+		DelegatorShares: sdkmath.LegacyMustNewDecFromStr("10000000"),
+		Description: stakingtypes.Description{
+			Moniker: "Testnet Validator",
+		},
+		Commission: stakingtypes.Commission{
+			CommissionRates: stakingtypes.CommissionRates{
+				Rate:          sdkmath.LegacyMustNewDecFromStr("0.05"),
+				MaxRate:       sdkmath.LegacyMustNewDecFromStr("0.1"),
+				MaxChangeRate: sdkmath.LegacyMustNewDecFromStr("0.05"),
+			},
+		},
+		MinSelfDelegation: sdkmath.OneInt(),
+	}
+
+	// Remove existing validators
+	stakingKey := app.GetKey(stakingtypes.StoreKey)
+	stakingStore := ctx.KVStore(stakingKey)
+
+	// Clear power store
+	iterator, err := app.StakingKeeper.ValidatorsPowerStoreIterator(ctx)
+	if err != nil {
+		panic(err)
+	}
+	for ; iterator.Valid(); iterator.Next() {
+		stakingStore.Delete(iterator.Key())
+	}
+	iterator.Close()
+
+	// Clear last validators
+	iterator, err = app.StakingKeeper.LastValidatorsIterator(ctx)
+	if err != nil {
+		panic(err)
+	}
+	for ; iterator.Valid(); iterator.Next() {
+		stakingStore.Delete(iterator.Key())
+	}
+	iterator.Close()
+
+	// Clear validators store
+	iterator = storetypes.KVStorePrefixIterator(stakingStore, stakingtypes.ValidatorsKey)
+	for ; iterator.Valid(); iterator.Next() {
+		stakingStore.Delete(iterator.Key())
+	}
+	iterator.Close()
+
+	// Add our new validator
+	err = app.StakingKeeper.SetValidator(ctx, newVal)
+	if err != nil {
+		panic(err)
+	}
+	err = app.StakingKeeper.SetValidatorByConsAddr(ctx, newVal)
+	if err != nil {
+		panic(err)
+	}
+	err = app.StakingKeeper.SetValidatorByPowerIndex(ctx, newVal)
+	if err != nil {
+		panic(err)
+	}
+
+	// DISTRIBUTION
+	valAddr, err := sdk.ValAddressFromBech32(newVal.GetOperator())
+	if err != nil {
+		panic(err)
+	}
+
+	// Initialize distribution records
+	err = app.DistrKeeper.SetValidatorHistoricalRewards(ctx, valAddr, 0, distrtypes.NewValidatorHistoricalRewards(sdk.DecCoins{}, 1))
+	if err != nil {
+		panic(err)
+	}
+	err = app.DistrKeeper.SetValidatorCurrentRewards(ctx, valAddr, distrtypes.NewValidatorCurrentRewards(sdk.DecCoins{}, 1))
+	if err != nil {
+		panic(err)
+	}
+	err = app.DistrKeeper.SetValidatorAccumulatedCommission(ctx, valAddr, distrtypes.InitialValidatorAccumulatedCommission())
+	if err != nil {
+		panic(err)
+	}
+
+	// SLASHING
+	// Set validator signing info
+	newConsAddr := sdk.ConsAddress(newValAddr)
+	signingInfo := slashingtypes.ValidatorSigningInfo{
+		Address:     newConsAddr.String(),
+		StartHeight: app.LastBlockHeight() - 1,
+		Tombstoned:  false,
+	}
+	err = app.SlashingKeeper.SetValidatorSigningInfo(ctx, newConsAddr, signingInfo)
+	if err != nil {
+		panic(err)
+	}
+
+	// GOV
+	// Set shorter voting periods for testnet
+	govParams, err := app.GovKeeper.Params.Get(ctx)
+	if err != nil {
+		panic(err)
+	}
+	votingPeriod := time.Minute * 2
+	//expeditedVotingPeriod := time.Minute
+	govParams.VotingPeriod = &votingPeriod
+	//govParams.ExpeditedVotingPeriod = &expeditedVotingPeriod
+	govParams.MinDeposit = sdk.NewCoins(sdk.NewCoin("unyx", sdkmath.NewInt(100000000)))
+	govParams.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin("unyx", sdkmath.NewInt(150000000)))
+	err = app.GovKeeper.Params.Set(ctx, govParams)
+	if err != nil {
+		panic(err)
+	}
+
+	// BANK
+	// Fund test accounts
+	testAccounts := []sdk.AccAddress{
+		sdk.MustAccAddressFromBech32("n1cyyzpxplxdzkeea7kwsydadg87357qnahakaks"),
+		sdk.MustAccAddressFromBech32("n1qwexv7c6sm95lwhzn9027vyu2ccneaqad4w8ka"),
+		sdk.MustAccAddressFromBech32("n14hcxlnwlqtq75ttaxf674vk6mafspg8xwgnn53"),
+	}
+
+	defaultCoins := sdk.NewCoins(
+		sdk.NewCoin("unyx", sdkmath.NewInt(1000000000000)),
+		sdk.NewCoin("unym", sdkmath.NewInt(1000000000000)),
+	)
+
+	for _, account := range testAccounts {
+		err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, defaultCoins)
+		if err != nil {
+			panic(err)
+		}
+		err = app.BankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, account, defaultCoins)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// UPGRADE
+	if upgradeToTrigger != "" {
+		upgradePlan := upgradetypes.Plan{
+			Name:   upgradeToTrigger,
+			Height: app.LastBlockHeight() + 10,
+		}
+		err = app.UpgradeKeeper.ScheduleUpgrade(ctx, upgradePlan)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return app
 }
