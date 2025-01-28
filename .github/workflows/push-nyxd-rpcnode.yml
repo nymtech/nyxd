@@ -5,6 +5,9 @@ on:
       version:
         type: string
         description: Which version of nyxd-rpcnode is this?
+      nyxd_version:
+        type: string
+        description: Which nyxd version to use?
 
 env:
   WORKING_DIRECTORY: "docker/rpcnode"
@@ -43,5 +46,5 @@ jobs:
 
       - name: BuildAndPushImageOnHarbor
         run: |
-          docker build -f ${{ env.WORKING_DIRECTORY }}/Dockerfile ${{ env.WORKING_DIRECTORY }} -t harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }}:${{ github.event.inputs.version }} -t harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }}:latest
+          docker build --arg WASMD_VERSION=${{ github.event.inputs.nyxd_version }} -f ${{ env.WORKING_DIRECTORY }}/Dockerfile ${{ env.WORKING_DIRECTORY }} -t harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }}:${{ github.event.inputs.version }} -t harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }}:latest
           docker push harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }} --all-tags
