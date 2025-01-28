@@ -14,7 +14,7 @@ function initialise_validator() {
   sleep 2
 
   echo "changing params"
-  sed -i 's/minimum-gas-prices = "0stake"/minimum-gas-prices = "0.025'${STAKE_DENOM}',0.025'${MIX_DENOM}'"/' "${VALIDATOR_DATA_DIRECTORY}/config/app.toml"
+  sed -i 's/minimum-gas-prices = "0stake"/minimum-gas-prices = "0.025'${STAKE_DENOM}',0.025'${DENOM}'"/' "${VALIDATOR_DATA_DIRECTORY}/config/app.toml"
   sed -i '0,/enable = false/s//enable = true/' "${VALIDATOR_DATA_DIRECTORY}/config/app.toml"
 
   # Network requests
