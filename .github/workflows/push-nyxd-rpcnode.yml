@@ -2,9 +2,6 @@ name: Build and upload Nyxd rpcnode container to harbor.nymte.ch
 on:
   workflow_dispatch:
     inputs:
-      version:
-        type: string
-        description: Which version of nyxd-rpcnode is this?
       nyxd_version:
         type: string
         description: Which nyxd version to use?
@@ -34,17 +31,17 @@ jobs:
 
       - name: Remove existing tag if exists
         run: |
-          if git rev-parse ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.version }} >/dev/null 2>&1; then
-            git push --delete origin ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.version }}
-            git tag -d ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.version }}
+          if git rev-parse ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.nyxd_version }} >/dev/null 2>&1; then
+            git push --delete origin ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.nyxd_version }}
+            git tag -d ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.nyxd_version }}
           fi
 
       - name: Create tag
         run: |
-          git tag -a ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.version }} -m "Version ${{ github.event.inputs.version }}"
-          git push origin ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.version }}
+          git tag -a ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.nyxd_version }} -m "Version ${{ github.event.inputs.nyxd_version }}"
+          git push origin ${{ env.CONTAINER_NAME }}-${{ github.event.inputs.nyxd_version }}
 
       - name: BuildAndPushImageOnHarbor
         run: |
-          docker build --arg WASMD_VERSION=${{ github.event.inputs.nyxd_version }} -f ${{ env.WORKING_DIRECTORY }}/Dockerfile ${{ env.WORKING_DIRECTORY }} -t harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }}:${{ github.event.inputs.version }} -t harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }}:latest
+          docker build --build-arg WASMD_VERSION=${{ github.event.inputs.nyxd_version }} -f ${{ env.WORKING_DIRECTORY }}/Dockerfile ${{ env.WORKING_DIRECTORY }} -t harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }}:${{ github.event.inputs.nyxd_version }} -t harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }}:latest
           docker push harbor.nymte.ch/nym/${{ env.CONTAINER_NAME }} --all-tags
