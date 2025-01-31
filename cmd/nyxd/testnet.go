@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -55,9 +57,10 @@ with the aim of facilitating testing procedures. This command replaces existing 
 thereby removing the old validator set and introducing a new set suitable for local testing purposes. By altering the state extracted from the mainnet node,
 it enables developers to configure their local environments to reflect mainnet conditions more accurately.`
 
-	cmd.Example = fmt.Sprintf(`%sd in-place-testnet testing-1 cosmosvaloper1w7f3xx7e75p4l7qdym5msqem9rd4dyc4mq79dm --home $HOME/.%sd/validator1 --validator-privkey=6dq+/KHNvyiw2TToCgOpUpQKIzrLs69Rb8Az39xvmxPHNoPxY1Cil8FY+4DhT9YwD6s0tFABMlLcpaylzKKBOg== --accounts-to-fund="cosmos1f7twgcq4ypzg7y24wuywy06xmdet8pc4473tnq,cosmos1qvuhm5m644660nd8377d6l7yz9e9hhm9evmx3x"`, "electra", "electra")
+	cmd.Example = fmt.Sprintf(`%sd in-place-testnet testing-1 n1valoper1xxxxx --home $HOME/.%sd/validator1 --validator-privkey=6dq+/KHNvyiw2TToCgOpUpQKIzrLs69Rb8Az39xvmxPHNoPxY1Cil8FY+4DhT9YwD6s0tFABMlLcpaylzKKBOg== --accounts-to-fund="n1xxx,n1yyyy"`, "nyx", "nyx")
 
 	cmd.Flags().String(flagAccountsToFund, "", "Comma-separated list of account addresses that will be funded for testing purposes")
+	cmd.Flags().String("validator-privkey", "", "Base64-encoded validator private key")
 	return cmd
 }
 
@@ -217,16 +220,35 @@ func initAppForTestnet(app *app.WasmApp, args valArgs) *app.WasmApp {
 func getCommandArgs(appOpts servertypes.AppOptions) (valArgs, error) {
 	args := valArgs{}
 
-	newValAddr, ok := appOpts.Get(server.KeyNewValAddr).(bytes.HexBytes)
-	if !ok {
-		panic("newValAddr is not of type bytes.HexBytes")
+	// Get validator private key from flag
+	validatorPrivKey := cast.ToString(appOpts.Get("validator-privkey"))
+	if validatorPrivKey == "" {
+		return args, fmt.Errorf("validator-privkey is required")
 	}
-	args.newValAddr = newValAddr
-	newValPubKey, ok := appOpts.Get(server.KeyUserPubKey).(crypto.PubKey)
-	if !ok {
-		panic("newValPubKey is not of type crypto.PubKey")
+
+	// Decode the private key
+	privKeyBytes, err := base64.StdEncoding.DecodeString(validatorPrivKey)
+	if err != nil {
+		return args, fmt.Errorf("invalid validator private key: %w", err)
 	}
-	args.newValPubKey = newValPubKey
+
+	// Parse the private key into the required types
+	var privKey ed25519.PrivKey
+	err = json.Unmarshal(privKeyBytes, &privKey)
+	if err != nil {
+		return args, fmt.Errorf("failed to unmarshal validator private key: %w", err)
+	}
+
+	// Convert SDK PubKey to Tendermint PubKey
+	sdkPubKey := privKey.PubKey()
+	tmPubKey, ok := sdkPubKey.(crypto.PubKey)
+	if !ok {
+		return args, fmt.Errorf("failed to convert SDK PubKey to Tendermint PubKey")
+	}
+
+	args.newValPubKey = tmPubKey
+	args.newValAddr = tmPubKey.Address()
+
 	newOperatorAddress, ok := appOpts.Get(server.KeyNewOpAddr).(string)
 	if !ok {
 		panic("newOperatorAddress is not of type string")
@@ -238,7 +260,7 @@ func getCommandArgs(appOpts servertypes.AppOptions) (valArgs, error) {
 	}
 	args.upgradeToTrigger = upgradeToTrigger
 
-	// validate  and set accounts to fund
+	// validate and set accounts to fund
 	accountsString := cast.ToString(appOpts.Get(flagAccountsToFund))
 
 	for _, account := range strings.Split(accountsString, ",") {
@@ -260,4 +282,3 @@ func getCommandArgs(appOpts servertypes.AppOptions) (valArgs, error) {
 
 	return args, nil
 }
-
