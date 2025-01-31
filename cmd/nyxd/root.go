@@ -126,7 +126,6 @@ func NewRootCmd() *cobra.Command {
 		panic(err)
 	}
 
-	rootCmd.AddCommand(testnetInitCmd())
 
 	return rootCmd
 }
