@@ -88,6 +88,22 @@ func initAppForTestnet(app *app.WasmApp, args valArgs) *app.WasmApp {
 	//
 	ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
 
+	// Set bond denom if not already set
+	bondDenom, err := app.StakingKeeper.BondDenom(ctx)
+	if err != nil || bondDenom == "" {
+		// Set default bond denom
+		params, err := app.StakingKeeper.GetParams(ctx)
+		if err != nil {
+			tmos.Exit(err.Error())
+		}
+		params.BondDenom = "unyx"
+		err = app.StakingKeeper.SetParams(ctx, params)
+		if err != nil {
+			tmos.Exit(err.Error())
+		}
+		bondDenom = "unyx"
+	}
+
 	pubkey := &ed25519.PubKey{Key: args.newValPubKey.Bytes()}
 	pubkeyAny, err := codectypes.NewAnyWithValue(pubkey)
 	if err != nil {
@@ -194,10 +210,6 @@ func initAppForTestnet(app *app.WasmApp, args valArgs) *app.WasmApp {
 
 	// BANK
 	//
-	bondDenom, err := app.StakingKeeper.BondDenom(ctx)
-	if err != nil {
-		tmos.Exit(err.Error())
-	}
 
 	defaultCoins := sdk.NewCoins(sdk.NewInt64Coin(bondDenom, 1000000000))
 
