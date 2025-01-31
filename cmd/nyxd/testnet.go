@@ -104,6 +104,17 @@ func initAppForTestnet(app *app.WasmApp, args valArgs) *app.WasmApp {
 		bondDenom = "unyx"
 	}
 
+	// Set mint module params
+	mintParams, err := app.MintKeeper.Params.Get(ctx)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+	mintParams.MintDenom = bondDenom
+	err = app.MintKeeper.Params.Set(ctx, mintParams)
+	if err != nil {
+		tmos.Exit(err.Error())
+	}
+
 	pubkey := &ed25519.PubKey{Key: args.newValPubKey.Bytes()}
 	pubkeyAny, err := codectypes.NewAnyWithValue(pubkey)
 	if err != nil {
