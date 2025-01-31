@@ -431,14 +431,6 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
-	// Initialize mint module's genesis state
-	if err := app.MintKeeper.Params.Set(sdk.Context{}, minttypes.DefaultParams()); err != nil {
-		panic(fmt.Sprintf("failed to set mint params: %s", err))
-	}
-	if err := app.MintKeeper.Minter.Set(sdk.Context{}, minttypes.DefaultInitialMinter()); err != nil {
-		panic(fmt.Sprintf("failed to set mint minter: %s", err))
-	}
-
 	app.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[distrtypes.StoreKey]),
