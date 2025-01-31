@@ -431,6 +431,14 @@ func NewWasmApp(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
+	// Initialize mint module's genesis state
+	if err := app.MintKeeper.Params.Set(sdk.Context{}, minttypes.DefaultParams()); err != nil {
+		panic(fmt.Sprintf("failed to set mint params: %s", err))
+	}
+	if err := app.MintKeeper.Minter.Set(sdk.Context{}, minttypes.DefaultInitialMinter()); err != nil {
+		panic(fmt.Sprintf("failed to set mint minter: %s", err))
+	}
+
 	app.DistrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[distrtypes.StoreKey]),
@@ -933,6 +941,20 @@ func NewWasmApp(
 		if err := app.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
 			panic(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
+
+		// Initialize mint module state if needed
+		if _, err := app.MintKeeper.Minter.Get(ctx); err != nil {
+			if err := app.MintKeeper.Minter.Set(ctx, minttypes.DefaultInitialMinter()); err != nil {
+				panic(fmt.Sprintf("failed to set mint minter: %s", err))
+			}
+		}
+		if _, err := app.MintKeeper.Params.Get(ctx); err != nil {
+			params := minttypes.DefaultParams()
+			params.MintDenom = "unyx"
+			if err := app.MintKeeper.Params.Set(ctx, params); err != nil {
+				panic(fmt.Sprintf("failed to set mint params: %s", err))
+			}
+		}
 	}
 
 	return app
@@ -1002,6 +1024,21 @@ func (app *WasmApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*a
 	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
+
+	// Ensure mint module has default state if not provided
+	if _, ok := genesisState[minttypes.ModuleName]; !ok {
+		var mintGenesis minttypes.GenesisState
+		mintGenesis.Params = minttypes.DefaultParams()
+		mintGenesis.Params.MintDenom = "unyx"
+		mintGenesis.Minter = minttypes.DefaultInitialMinter()
+
+		bz, err := app.appCodec.MarshalJSON(&mintGenesis)
+		if err != nil {
+			panic(err)
+		}
+		genesisState[minttypes.ModuleName] = bz
+	}
+
 	err := app.UpgradeKeeper.SetModuleVersionMap(ctx, app.ModuleManager.GetVersionMap())
 	if err != nil {
 		panic(err)
@@ -1212,4 +1249,3 @@ func OverrideWasmVariables() {
 	wasmtypes.MaxWasmSize = 1256 * 1024 // Set MaxWasmSize to 1.2MB
 	wasmtypes.MaxProposalWasmSize = wasmtypes.MaxWasmSize
 }
-

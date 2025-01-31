@@ -105,12 +105,22 @@ func initAppForTestnet(app *app.WasmApp, args valArgs) *app.WasmApp {
 	}
 
 	// Set mint module params
-	mintParams, err := app.MintKeeper.Params.Get(ctx)
+	mintParams := minttypes.DefaultParams()
+	mintParams.MintDenom = bondDenom
+	mintParams.InflationRateChange = math.LegacyNewDecWithPrec(13, 2) // 13%
+	mintParams.InflationMax = math.LegacyNewDecWithPrec(20, 2)        // 20%
+	mintParams.InflationMin = math.LegacyNewDecWithPrec(7, 2)         // 7%
+	mintParams.GoalBonded = math.LegacyNewDecWithPrec(67, 2)          // 67%
+	mintParams.BlocksPerYear = uint64(6311520)                        // assuming 5 second blocks
+
+	err = app.MintKeeper.Params.Set(ctx, mintParams)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
-	mintParams.MintDenom = bondDenom
-	err = app.MintKeeper.Params.Set(ctx, mintParams)
+
+	// Also set the minter
+	minter := minttypes.DefaultInitialMinter()
+	err = app.MintKeeper.Minter.Set(ctx, minter)
 	if err != nil {
 		tmos.Exit(err.Error())
 	}
