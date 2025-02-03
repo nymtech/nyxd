@@ -65,12 +65,14 @@ edit_genesis () {
 
 add_genesis_accounts () {
     # Add genesis accounts with test tokens
-    nyxd add-genesis-account n1yf8syypl2arj0p94d7kh4v4lqqlratfzdwje9p 100000000000unyx,100000000000unym --home $NYX_HOME
-    nyxd add-genesis-account n1du0dtepk5nepu52fnhnn3fjskypxyfq8avzkna 100000000000unyx,100000000000unym --home $NYX_HOME
-    nyxd add-genesis-account n1ay66l60qfckfwhf48fll6anp469yerw0n4rwt0 100000000000unyx,100000000000unym --home $NYX_HOME
+    nyxd add-genesis-account n1yf8syypl2arj0p94d7kh4v4lqqlratfzdwje9p 10000000unyx,10000000unym --home $NYX_HOME
+    nyxd add-genesis-account n1du0dtepk5nepu52fnhnn3fjskypxyfq8avzkna 10000000unyx,10000000unym --home $NYX_HOME
+    nyxd add-genesis-account n1ay66l60qfckfwhf48fll6anp469yerw0n4rwt0 10000000unyx,10000000unym --home $NYX_HOME
 
+
+    # bring in gigachad validator
     echo $MNEMONIC | nyxd keys add $MONIKER --recover --keyring-backend=test --home $NYX_HOME
-    nyxd gentx $MONIKER 500000000unyx --keyring-backend=test --chain-id=$CHAIN_ID --home $NYX_HOME
+    nyxd gentx $MONIKER 5000000unyx --keyring-backend=test --chain-id=$CHAIN_ID --home $NYX_HOME
 
     nyxd collect-gentxs --home $NYX_HOME
 }
@@ -113,6 +115,6 @@ then
     enable_cors
 fi
 
-nyxd start --home $NYX_HOME --x-crisis-skip-assert-invariants & 
+nyxd start --home $NYX_HOME --x-crisis-skip-assert-invariants &
 
-wait 
+wait
