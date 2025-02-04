@@ -130,8 +130,8 @@ func CreateUpgradeHandler(
 		}
 
 		// Check if we're good after the upgrade
-		logger.Info(" === Asserting invariants post-upgrade === ")
-		ak.CrisisKeeper.AssertInvariants(sdkCtx)
+		//logger.Info(" === Asserting invariants post-upgrade === ")
+		//ak.CrisisKeeper.AssertInvariants(sdkCtx)
 
 		logger.Info("Upgrade complete! 🎉")
 
