@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/CosmWasm/wasmd v0.54.0
 	github.com/CosmWasm/wasmvm/v2 v2.2.2
-	github.com/cosmos/cosmos-sdk v0.50.12
+	github.com/cosmos/cosmos-sdk v0.50.13
 	github.com/cosmos/gogoproto v1.7.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/spf13/cast v1.7.1
@@ -33,7 +33,7 @@ require (
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/ibc-go/modules/apps/callbacks v0.2.1-0.20231113120333-342c00b0f8bd
 	github.com/cosmos/ibc-go/modules/capability v1.0.1
-	github.com/cosmos/ibc-go/v8 v8.6.0
+	github.com/cosmos/ibc-go/v8 v8.7.0
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/viper v1.19.0
 )
