@@ -13,9 +13,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/CosmWasm/wasmd/app"
 	v2 "github.com/CosmWasm/wasmd/x/wasm/migrations/v2"
 	"github.com/CosmWasm/wasmd/x/wasm/types"
+	"github.com/nymtech/nyxd/app"
 )
 
 func TestModuleMigrations(t *testing.T) {
