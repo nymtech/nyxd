@@ -260,4 +260,3 @@ var tempDir = func() string {
 
 	return dir
 }
-

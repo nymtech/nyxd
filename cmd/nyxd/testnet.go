@@ -35,9 +35,7 @@ const (
 	valVotingPower int64 = 900000000000000
 )
 
-var (
-	flagAccountsToFund = "accounts-to-fund"
-)
+var flagAccountsToFund = "accounts-to-fund"
 
 type valArgs struct {
 	newValAddr         bytes.HexBytes

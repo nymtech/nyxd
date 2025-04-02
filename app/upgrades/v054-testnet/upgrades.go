@@ -105,7 +105,6 @@ func CreateUpgradeHandler(
 		// Set governance module parameters
 		logger.Info("==== Setting governance parameters =====")
 		govParams, err := ak.GovKeeper.Params.Get(sdkCtx)
-
 		if err != nil {
 			panic("Failed to get governance parameters")
 		}
