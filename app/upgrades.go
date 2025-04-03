@@ -7,11 +7,11 @@ import (
 
 	"github.com/nymtech/nyxd/app/upgrades"
 	"github.com/nymtech/nyxd/app/upgrades/noop"
-	v0541 "github.com/nymtech/nyxd/app/upgrades/v054-1"
+	v055 "github.com/nymtech/nyxd/app/upgrades/v055"
 )
 
 // Upgrades list of chain upgrades
-var Upgrades = []upgrades.Upgrade{v0541.Upgrade}
+var Upgrades = []upgrades.Upgrade{v055.Upgrade}
 
 // RegisterUpgradeHandlers registers the chain upgrade handlers
 func (app *WasmApp) RegisterUpgradeHandlers() {
