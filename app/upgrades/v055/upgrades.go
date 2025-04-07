@@ -9,7 +9,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
+	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
 	"github.com/nymtech/nyxd/app/upgrades"
 )
 
@@ -20,8 +22,13 @@ var Upgrade = upgrades.Upgrade{
 	UpgradeName:          UpgradeName,
 	CreateUpgradeHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
-		Added:   []string{},
-		Deleted: []string{},
+		Added: []string{},
+		Deleted: []string{
+			"intertx",
+			icatypes.ModuleName,
+			icacontrollertypes.StoreKey,
+			icahosttypes.StoreKey,
+		},
 	},
 }
 
@@ -43,6 +50,18 @@ func CreateUpgradeHandler(
 			return nil, err
 		}
 
+		// Generate summary
+		logger.Info("==== Migrations summary start =====")
+		for moduleName, oldVersion := range fromVM {
+			if newVersion, ok := newVersionMap[moduleName]; ok {
+				if oldVersion != newVersion {
+					logger.Info(fmt.Sprintf("Module %s migrated from version %d to version %d", moduleName, oldVersion, newVersion))
+				}
+			} else {
+				logger.Info(fmt.Sprintf("Module %s was removed during the upgrade", moduleName))
+			}
+		}
+		logger.Info("==== Migrations summary end =====")
 		// Check if we're good after the upgrade
 		logger.Info(" === Asserting invariants post-upgrade === ")
 		ak.CrisisKeeper.AssertInvariants(sdkCtx)
