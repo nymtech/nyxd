@@ -7,7 +7,7 @@ import (
 
 	"github.com/nymtech/nyxd/app/upgrades"
 	"github.com/nymtech/nyxd/app/upgrades/noop"
-	v055 "github.com/nymtech/nyxd/app/upgrades/v060"
+	v060 "github.com/nymtech/nyxd/app/upgrades/v060"
 )
 
 // Upgrades list of chain upgrades
@@ -24,8 +24,6 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 		AccountKeeper:         &app.AccountKeeper,
 		ConsensusParamsKeeper: &app.ConsensusParamsKeeper,
 		IBCKeeper:             app.IBCKeeper,
-		CrisisKeeper:          app.CrisisKeeper,
-		GovKeeper:             &app.GovKeeper,
 		Codec:                 app.appCodec,
 		GetStoreKey:           app.GetKey,
 	}

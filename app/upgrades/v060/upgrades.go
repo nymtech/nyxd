@@ -10,7 +10,7 @@ import (
 	epochstypes "github.com/cosmos/cosmos-sdk/x/epochs/types"
 	protocolpooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
 
-	"github.com/CosmWasm/wasmd/app/upgrades"
+	"github.com/nymtech/nyxd/app/upgrades"
 )
 
 // UpgradeName defines the on-chain upgrade name
@@ -33,7 +33,6 @@ func CreateUpgradeHandler(
 	configurator module.Configurator,
 	ak *upgrades.AppKeepers,
 ) upgradetypes.UpgradeHandler {
-	// sdk 50 to sdk 53
 	return func(ctx context.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		return mm.RunMigrations(ctx, configurator, fromVM)
 	}

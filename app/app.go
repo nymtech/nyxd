@@ -58,6 +58,13 @@ import (
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 
+	hyperlanecore "github.com/bcp-innovations/hyperlane-cosmos/x/core"
+	hyperlanecorekeeper "github.com/bcp-innovations/hyperlane-cosmos/x/core/keeper"
+	hyperlanecoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperlanewarp "github.com/bcp-innovations/hyperlane-cosmos/x/warp"
+	hyperlanewarpkeeper "github.com/bcp-innovations/hyperlane-cosmos/x/warp/keeper"
+	hyperlanewarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -169,9 +176,11 @@ var maccPerms = map[string][]string{
 	protocolpooltypes.ModuleName:                nil,
 	protocolpooltypes.ProtocolPoolEscrowAccount: nil,
 	// non sdk modules
-	ibctransfertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-	icatypes.ModuleName:         nil,
-	wasmtypes.ModuleName:        {authtypes.Burner},
+	ibctransfertypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
+	icatypes.ModuleName:           nil,
+	wasmtypes.ModuleName:          {authtypes.Burner},
+	hyperlanecoretypes.ModuleName: nil,
+	hyperlanewarptypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 }
 
 var (
@@ -217,6 +226,10 @@ type WasmApp struct {
 	ICAHostKeeper       icahostkeeper.Keeper
 	TransferKeeper      ibctransferkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
+
+	// Hyperlane keepers
+	HyperlaneKeeper     hyperlanecorekeeper.Keeper
+	HyperlaneWarpKeeper hyperlanewarpkeeper.Keeper
 
 	// the module manager
 	ModuleManager      *module.Manager
@@ -321,6 +334,8 @@ func NewWasmApp(
 		ibcexported.StoreKey, ibctransfertypes.StoreKey,
 		wasmtypes.StoreKey, icahosttypes.StoreKey,
 		icacontrollertypes.StoreKey,
+		hyperlanecoretypes.ModuleName,
+		hyperlanewarptypes.ModuleName,
 	)
 
 	// register streaming services
@@ -670,7 +685,24 @@ func NewWasmApp(
 	tmLightClientModule := ibctm.NewLightClientModule(appCodec, storeProvider)
 	clientKeeper.AddRoute(ibctm.ModuleName, &tmLightClientModule)
 
-	/****  Module Options ****/
+	// Hyperlane modules
+	app.HyperlaneKeeper = hyperlanecorekeeper.NewKeeper(
+		appCodec,
+		app.AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(keys[hyperlanecoretypes.ModuleName]),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.BankKeeper,
+	)
+
+	app.HyperlaneWarpKeeper = hyperlanewarpkeeper.NewKeeper(
+		appCodec,
+		app.AccountKeeper.AddressCodec(),
+		runtime.NewKVStoreService(keys[hyperlanewarptypes.ModuleName]),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.BankKeeper,
+		&app.HyperlaneKeeper,
+		[]int32{int32(hyperlanewarptypes.HYP_TOKEN_TYPE_SYNTHETIC), int32(hyperlanewarptypes.HYP_TOKEN_TYPE_COLLATERAL)},
+	)
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -705,6 +737,9 @@ func NewWasmApp(
 		transfer.NewAppModule(app.TransferKeeper),
 		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
 		ibctm.NewAppModule(tmLightClientModule),
+		// Hyperlane modules
+		hyperlanecore.NewAppModule(appCodec, &app.HyperlaneKeeper),
+		hyperlanewarp.NewAppModule(appCodec, app.HyperlaneWarpKeeper),
 	)
 
 	// BasicModuleManager defines the module BasicManager is in charge of setting up basic,
@@ -726,6 +761,8 @@ func NewWasmApp(
 	app.ModuleManager.SetOrderPreBlockers(
 		upgradetypes.ModuleName,
 		authtypes.ModuleName,
+		hyperlanecoretypes.ModuleName,
+		hyperlanewarptypes.ModuleName,
 	)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
@@ -761,6 +798,8 @@ func NewWasmApp(
 		ibcexported.ModuleName,
 		icatypes.ModuleName,
 		wasmtypes.ModuleName,
+		hyperlanecoretypes.ModuleName,
+		hyperlanewarptypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -798,6 +837,8 @@ func NewWasmApp(
 		icatypes.ModuleName,
 		// wasm after ibc transfer
 		wasmtypes.ModuleName,
+		hyperlanecoretypes.ModuleName,
+		hyperlanewarptypes.ModuleName,
 	}
 
 	exportModuleOrder := []string{
@@ -826,6 +867,8 @@ func NewWasmApp(
 		icatypes.ModuleName,
 		// wasm after ibc transfer
 		wasmtypes.ModuleName,
+		hyperlanecoretypes.ModuleName,
+		hyperlanewarptypes.ModuleName,
 	}
 
 	app.ModuleManager.SetOrderInitGenesis(genesisModuleOrder...)
