@@ -10,6 +10,8 @@ import (
 	epochstypes "github.com/cosmos/cosmos-sdk/x/epochs/types"
 	protocolpooltypes "github.com/cosmos/cosmos-sdk/x/protocolpool/types"
 
+	hyperlanecoretypes "github.com/bcp-innovations/hyperlane-cosmos/x/core/types"
+	hyperlanewarptypes "github.com/bcp-innovations/hyperlane-cosmos/x/warp/types"
 	"github.com/nymtech/nyxd/app/upgrades"
 )
 
@@ -23,6 +25,8 @@ var Upgrade = upgrades.Upgrade{
 		Added: []string{
 			epochstypes.ModuleName,
 			protocolpooltypes.ModuleName,
+			hyperlanecoretypes.ModuleName,
+			hyperlanewarptypes.ModuleName,
 		},
 		Deleted: []string{},
 	},
