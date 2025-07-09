@@ -5,7 +5,7 @@ This repository hosts `nyxd`, a Cosmos zone with wasm smart contracts enabled. I
 This code was forked from the `cosmwasm/wasmd` repository, which was itself forked from `cosmos/gaiad` as a basis by the CosmWasm project. They then added `x/wasm` and cleaned up
 many gaia-specific files. However, the `nyxd` binary should function just like `gaiad` except for the addition of the `x/wasm` module.
 
-**Note**: Requires [Go 1.23.5](https://golang.org/dl/). The mainnet binary in the releases is built with `Go 1.23.5` so if you plan on building from source please use that version!
+**Note**: Requires [Go 1.23.11](https://golang.org/dl/). The mainnet binary in the releases is built with `Go 1.23.11` so if you plan on building from source please use that version!
 
 ⚠️ Using other versions of Go may result in non-determinism (app-hash issues)
 
@@ -14,7 +14,7 @@ As this is essentially a no-modifications fork of `wasmd`, security issues are b
 
 ## Quick Start
 
-Please refer to [validator operators guide](https://nymtech.net/operators/nodes/validator-setup.html) for setup instructions.
+Please refer to [validator operators guide](https://nym.com/docs/operators/nodes/validator-setup) for setup instructions.
 
 
 ## Further Reading
