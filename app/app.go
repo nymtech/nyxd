@@ -130,6 +130,8 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
@@ -272,6 +274,13 @@ func NewWasmApp(
 
 	std.RegisterLegacyAminoCodec(legacyAmino)
 	std.RegisterInterfaces(interfaceRegistry)
+
+	// Register legacy parameter change proposal types (and their amino equivalents) that are still persisted on-chain but
+	// are no longer registered by default in the SDK's `std` registration helper.
+	// Without this, querying proposals that contain such content fails with
+	// "no concrete type registered" errors.
+	paramproposal.RegisterLegacyAminoCodec(legacyAmino)
+	paramproposal.RegisterInterfaces(interfaceRegistry)
 
 	// Below we could construct and set an application specific mempool and
 	// ABCI 1.0 PrepareProposal and ProcessProposal handlers. These defaults are
