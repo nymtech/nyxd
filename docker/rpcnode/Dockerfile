@@ -3,7 +3,7 @@ FROM --platform=linux/amd64 ubuntu:24.04
 ARG UID=1001
 ARG GID=1001
 ARG NYM_CLI_GIT_TAG=master
-ARG WASMD_VERSION=v0.43.0
+ARG WASMD_VERSION=v0.60.0
 ARG RETAIN_BLOCKS
 
 ####################################
