@@ -29,7 +29,7 @@ require (
 	cosmossdk.io/x/nft v0.1.1
 	cosmossdk.io/x/tx v0.14.0
 	cosmossdk.io/x/upgrade v0.1.4
-	github.com/cometbft/cometbft v0.38.17
+	github.com/cometbft/cometbft v0.38.18
 	github.com/cosmos/cosmos-db v1.1.1
 	github.com/cosmos/ibc-go/v10 v10.0.0
 	github.com/rs/zerolog v1.34.0
