@@ -57,7 +57,6 @@ import (
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	txmodule "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 
 	hyperlanecore "github.com/bcp-innovations/hyperlane-cosmos/x/core"
@@ -986,9 +985,6 @@ func NewWasmApp(
 			}
 		}
 	}
-	app.setPostHandler()
-
-	app.setPinnedCodes(loadLatest)
 
 	return app
 }
@@ -1018,16 +1014,16 @@ func (app *WasmApp) setAnteHandler(txConfig client.TxConfig, nodeConfig wasmtype
 	app.SetAnteHandler(anteHandler)
 }
 
-func (app *WasmApp) setPostHandler() {
-	postHandler, err := posthandler.NewPostHandler(
-		posthandler.HandlerOptions{},
-	)
-	if err != nil {
-		panic(err)
-	}
+// func (app *WasmApp) setPostHandler() {
+// 	postHandler, err := posthandler.NewPostHandler(
+// 		posthandler.HandlerOptions{},
+// 	)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	app.SetPostHandler(postHandler)
-}
+// 	app.SetPostHandler(postHandler)
+// }
 
 func (app *WasmApp) setPinnedCodes(loadLatest bool) {
 	if loadLatest {
