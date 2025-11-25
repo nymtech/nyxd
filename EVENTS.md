@@ -13,7 +13,7 @@ This is often empty, but sometimes custom protobuf formats to return essential i
 
 Every message in the SDK may add events to the EventManager and these are then added to the final ABCI result that is returned
 to Tendermint. Events are exposed in 3 different ways over the Tendermint API (which is the only way a client can query).
-First of all is the `events` field on the transaction result (when you query a transaction by hash, you can see all event emitted
+First of all is the `events` field on the transaction result (when you query a transaction by hash, you can see all events emitted
 by it). Secondly is the `log` field on the same transaction result. And third is the query interface to search or subscribe for
 transactions. 
 
@@ -105,7 +105,7 @@ sdk.NewEvent(
 ),
 ```
 
-The delegation module seems a bit more refined, emitting a generic "message" type event in [`msg_server.go`](https://github.com/cosmos/cosmos-sdk/blob/v0.42.9/x/distribution/keeper/msg_server.go#L42-L46) including the module name, **before** 
+The delegation module seems a bit more refined, emitting a generic "message" type event in [`msg_server.go`](https://github.com/cosmos/cosmos-sdk/blob/v0.42.9/x/distribution/keeper/msg_server.go#L42-L46) including the module name, **before**
 emitting some custom event types closer to the actual code logic in
 [`keeper.go`](https://github.com/cosmos/cosmos-sdk/blob/v0.42.9/x/distribution/keeper/keeper.go#L74-L77).
 
@@ -240,7 +240,7 @@ If the response contains a non-empty list of `attributes`, `x/wasm` will emit a 
 always be tagged with `_contract_address` by the Go module, so this is trust-worthy. The contract itself cannot overwrite
 this field. Beyond this, the `attributes` returned by the contract, these are appended to the same event.
 
-A contact may also return custom `events`. These are multiple events, each with their own type as well as attributes.
+A contract may also return custom `events`. These are multiple events, each with their own type as well as attributes.
 When they are received, `x/wasm` prepends `wasm-` to the event type returned by the contact to avoid them trying to fake
 an eg. `transfer` event from the bank module. The output here may look like:
 
@@ -312,7 +312,7 @@ consistent way possible.
 ### Combining Events from Sub-Messages
 
 Each time a contract is executed, it not only returns the `message` event from its call, the `execute` event for the
-contact and the `wasm` event with any custom fields from the contract itself. It will also return the same set of information
+contract and the `wasm` event with any custom fields from the contract itself. It will also return the same set of information
 for all messages that it returned, which were later dispatched. The event system was really designed for one main
 action emitting events, so we define a structure to flatten this event tree:
 
@@ -346,7 +346,7 @@ sdk.NewEvent(
     sdk.NewAttribute("custom", "from contract"),
 ),
 
-// instantiating contract (first dipatched message)
+// instantiating contract (first dispatched message)
 sdk.NewEvent(
     "instantiate",
     sdk.NewAttribute("code_id", fmt.Sprintf("%d", msg.CodeID)),
@@ -382,7 +382,7 @@ sdk.NewEvent(
 
 When the `reply` clause in a contract is called, it will receive the data returned from the message it
 applies to, as well as all events from that message. In the above case, when the `reply` function was called
-on `contractAddr` in response to initializing a contact, it would get the binary-encoded `initData` in the `data`
+on `contractAddr` in response to initializing a contract, it would get the binary-encoded `initData` in the `data`
 field, and the following in the `events` field:
 
 ```go
@@ -415,6 +415,6 @@ sdk.NewEvent(
 
 ## IBC Events
 
-All IBC entry points are only called by external accounts and not from contracts. They need to contain proofs of state of other blockchains and cannot be called by other contracts on the same chain. Therefore, the event emitted are not essential for cross-contract calls, and `x/wasm` does not emit custom events for these actions.
+All IBC entry points are only called by external accounts and not from contracts. They need to contain proofs of state of other blockchains and cannot be called by other contracts on the same chain. Therefore, the events emitted are not essential for cross-contract calls, and `x/wasm` does not emit custom events for these actions.
 
 There are well-defined events emitted by the IBC base layer and are required for the relayer functionality. If you wish to subscribe to these, you can find them [defined in the `ibc-go` codebase](https://github.com/cosmos/ibc-go/blob/main/modules/core/04-channel/keeper/events.go).

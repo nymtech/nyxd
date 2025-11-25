@@ -8,10 +8,9 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	"github.com/CosmWasm/wasmd/x/wasm/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-
-	"github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/nymtech/nyxd/app"
 )
 
@@ -102,7 +101,7 @@ func TestAccessConfigMigrations(t *testing.T) {
 	// allow everybody was not migrated
 	assert.Equal(t, types.AllowEverybody, wasmApp.WasmKeeper.GetCodeInfo(ctx, code2).InstantiateConfig)
 
-	// allow nodoby was not migrated
+	// allow nobody was not migrated
 	assert.Equal(t, types.AllowNobody, wasmApp.WasmKeeper.GetCodeInfo(ctx, code3).InstantiateConfig)
 }
 

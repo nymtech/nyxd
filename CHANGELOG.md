@@ -2,7 +2,52 @@
 
 ## [Unreleased](https://github.com/CosmWasm/wasmd/tree/HEAD)
 
-[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.60.0...HEAD)
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.61.4...HEAD)
+
+## [v0.61.4](https://github.com/CosmWasm/wasmd/tree/v0.61.4) (2025-08-29)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.61.3...v0.61.4)
+
+- Bump wasmvm to v3.0.2 [\#2359](https://github.com/CosmWasm/wasmd/pull/2359)
+
+## [v0.61.3](https://github.com/CosmWasm/wasmd/tree/v0.61.3) (2025-08-27)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.61.2...v0.61.3)
+
+- Bump wasmvm to v3.0.1 [\#2355](https://github.com/CosmWasm/wasmd/pull/2355)
+
+## [v0.61.2](https://github.com/CosmWasm/wasmd/tree/v0.61.2) (2025-07-29)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.61.1...v0.61.2)
+
+- Bump cosmos-sdk to v0.53.4 [\#2334](https://github.com/CosmWasm/wasmd/pull/2334)
+
+## [v0.61.1](https://github.com/CosmWasm/wasmd/tree/v0.61.1) (2025-07-08)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.61.0...v0.61.1)
+
+- Bump cosmos-sdk to [v0.53.3](https://github.com/cosmos/cosmos-sdk/releases/tag/v0.53.3) which includes a security fix to [ISA-2025-005](https://github.com/cosmos/cosmos-sdk/security/advisories/GHSA-p22h-3m2v-cmgh)
+
+## [v0.61.0](https://github.com/CosmWasm/wasmd/tree/v0.61.0) (2025-06-24)
+
+[Full Changelog](https://github.com/CosmWasm/wasmd/compare/v0.55.0...v0.61.0)
+
+- Update to wasmvm 3.0.0 [\#2304](https://github.com/CosmWasm/wasmd/pull/2304)
+- Add Transfer special handling to IBC destination callback if it's a transfer message [\#2267](https://github.com/CosmWasm/wasmd/pull/2267)
+- Implement RawRange query [\#2263](https://github.com/CosmWasm/wasmd/pull/2263)
+- chore: Change port prefix for IBCv2 messages to "wasm2" [\#2229](https://github.com/CosmWasm/wasmd/pull/2229)
+- feat: IBCv2 timeout handler [\#2226](https://github.com/CosmWasm/wasmd/pull/2226)
+- chore: source_client instead of channel_id in IBCv2 [\#2223](https://github.com/CosmWasm/wasmd/pull/2223)
+- fix: Use seconds instead of nanoseconds for IBCv2 msg [\#2214](https://github.com/CosmWasm/wasmd/pull/2214)
+- Register IBC v2 route and store the IBC v2 port in ContractInfo [\#2122](https://github.com/CosmWasm/wasmd/issues/2122)
+- chore: Remove unused keepers [\#2190](https://github.com/CosmWasm/wasmd/pull/2190)
+- Add IBC v2 SendPacket message encoding [\#2110](https://github.com/CosmWasm/wasmd/issues/2110)
+- Remove IBC fee handling, as it is no longer supported by the IBC protocol [\#2254](https://github.com/CosmWasm/wasmd/pull/2254)
+- Add support for IBCv2 Send entry point [\#2252](https://github.com/CosmWasm/wasmd/pull/2252)
+- Introduce IBCv2 endpoint for receiving message acknowledgements [\#2261](https://github.com/CosmWasm/wasmd/pull/2261)
+- IBCv2 WriteAcknowledgement handler for async ACK [\#2173](https://github.com/CosmWasm/wasmd/pull/2173)
+- Remove HRP from port ID to comply with the IBC port ID format [\#2266](https://github.com/CosmWasm/wasmd/pull/2266)
+- Add a transaction hash to TransactionInfo [\#2259](https://github.com/CosmWasm/wasmd/pull/2259)
 
 ## [v0.60.0](https://github.com/CosmWasm/wasmd/tree/v0.60.0) (2025-05-26)
 
@@ -304,7 +349,7 @@ below to learn more!
 ### Notable changes:
 
 - If you are not coming from v0.32.0, please see the "Notables changes" below, first. Especially about CometBFT.
-- IBC-Go is a new major version including the "hucklebery" security fix. See [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1).
+- IBC-Go is a new major version including the "huckleberry" security fix. See [v7.0.1](https://github.com/cosmos/ibc-go/releases/tag/v7.0.1).
 - SDK 47 support is a big step from the SDK 45 version supported before. Make sure to read the upgrade guide for the SDK
   before applying any changes. Links below.
 - Some advice from working with SDK 47 that may affect you, too:
@@ -449,7 +494,7 @@ below to learn more!
 - Make contract addresses predictable \("deterministic"\) [\#942](https://github.com/CosmWasm/wasmd/issues/942)
 - Add query for the total supply of a coin [\#903](https://github.com/CosmWasm/wasmd/pull/903) ([larry0x](https://github.com/larry0x))
 - Upgrade go to v1.18 [\#866]https://github.com/CosmWasm/wasmd/pull/866/) ([faddat](https://github.com/faddat))
-- Upgrade to ibc-go v3.3.0 REQUIRES [MIGRATION](https://github.com/cosmos/ibc-go/blob/v3.2.3/docs/migrations/support-denoms-with-slashes.md) [\#1016](https://github.com/CosmWasm/wasmd/pull/1016)
+- Upgrade to ibc-go v3.3.0 REQUIRES [MIGRATION](https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/01-support-denoms-with-slashes.md) [\#1016](https://github.com/CosmWasm/wasmd/pull/1016)
 - Upgrade to cosmos-sdk v0.45.8 [\#964](https://github.com/CosmWasm/wasmd/pull/964/) ([faddat](https://github.com/faddat))
 - Upgrade wasmvm to v1.1.1 [\#1012](https://github.com/CosmWasm/wasmd/pull/1012), see [wasmvm v1.1.1](https://github.com/CosmWasm/wasmvm/releases/tag/v1.1.1)
 - Add documentation how to add x/wasm to a new Cosmos SDK chain [\#876](https://github.com/CosmWasm/wasmd/issues/876)
@@ -473,7 +518,7 @@ below to learn more!
 
 ### Migration notes:
 
-- See ibc-go [migration notes](https://github.com/cosmos/ibc-go/blob/v3.3.0/docs/migrations/support-denoms-with-slashes.md)
+- See ibc-go [migration notes](https://github.com/cosmos/ibc-go/blob/main/docs/docs/05-migrations/01-support-denoms-with-slashes.md)
 
 ## [v0.28.0](https://github.com/CosmWasm/wasmd/tree/v0.28.0) (2022-07-29)
 
