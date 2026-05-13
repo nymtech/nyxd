@@ -236,6 +236,9 @@ require (
 
 replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+
+	// Bump iavl past v1.2.4 to pick up cosmos/iavl#1063 (continue pruning if version not found)
+	github.com/cosmos/iavl => github.com/cosmos/iavl v1.2.8
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
 	// See: https://github.com/cosmos/cosmos-sdk/issues/13134
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
