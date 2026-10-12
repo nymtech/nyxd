@@ -5,6 +5,9 @@ import (
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
+	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+
 	"github.com/nymtech/nyxd/app/upgrades"
 	"github.com/nymtech/nyxd/app/upgrades/noop"
 	v061 "github.com/nymtech/nyxd/app/upgrades/v061"
@@ -14,7 +17,7 @@ import (
 var Upgrades = []upgrades.Upgrade{v061.Upgrade}
 
 // RegisterUpgradeHandlers registers the chain upgrade handlers
-func (app *WasmApp) RegisterUpgradeHandlers() {
+func (app *WasmApp) RegisterUpgradeHandlers(appOpts servertypes.AppOptions) {
 	if len(Upgrades) == 0 {
 		// always have a unique upgrade registered for the current version to test in system tests
 		Upgrades = append(Upgrades, noop.NewUpgrade(app.Version()))
@@ -38,6 +41,19 @@ func (app *WasmApp) RegisterUpgradeHandlers() {
 				&keepers,
 			),
 		)
+	}
+
+	// in-place-testnet --trigger-testnet-upgrade runs the plan on the first testnet
+	// block, so its store upgrades apply on load instead of via upgrade-info.json
+	if isTestnet, _ := appOpts.Get(server.KeyIsTestnet).(bool); isTestnet {
+		if name, _ := appOpts.Get(server.KeyTriggerTestnetUpgrade).(string); name != "" {
+			for _, upgrade := range Upgrades {
+				if upgrade.UpgradeName == name {
+					app.SetStoreLoader(testnetStoreLoader(&upgrade.StoreUpgrades))
+					return
+				}
+			}
+		}
 	}
 
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()

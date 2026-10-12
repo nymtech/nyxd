@@ -1,83 +1,99 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Fork a Nyx chain into a local single-validator testnet.
+#
+# Copies the data of a stopped node into a new home, gives the copy a fresh
+# validator key, a fresh operator account and an empty peer list, then runs
+# `nyxd in-place-testnet` on it. The source home is never modified.
+#
+# usage: scripts/testnetify.sh -s <source-home> -o <fork-home> [options]
+#   -s DIR   home of a cleanly stopped node (needs config/genesis.json and data/)
+#   -o DIR   home to create for the fork (must not exist)
+#   -c ID    chain id of the fork (default: nyx-fork-1)
+#   -u NAME  upgrade to run on the first block, e.g. v0.61; required when the
+#            binary is one upgrade ahead of the copied state
+#   -f ADDRS comma-separated extra accounts to fund
+#   -b BIN   nyxd binary (default: nyxd on PATH)
+#   -n       prepare the fork but do not start it
+#
+# The fork node listens on the default ports (26656/26657/9090/1317); stop other
+# local nodes first. Once in-place-testnet has committed its first block, stop it
+# and restart with: nyxd start --home <fork-home>
+set -euo pipefail
 
-# Configuration
-NODE_HOME="$HOME/.nyxd"
-VALIDATOR_NAME="validator1"
-VALIDATOR_HOME="$NODE_HOME/$VALIDATOR_NAME"
-CHAIN_ID="testing-1"
+CHAIN_ID=nyx-fork-1
+NYXD=nyxd
+UPGRADE=""
+EXTRA_ACCOUNTS=""
+START=1
+SRC=""
+DST=""
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+usage() { sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
-# Create validator directory if it doesn't exist
-if [ ! -d "$VALIDATOR_HOME" ]; then
-    echo -e "${GREEN}Creating validator directory at $VALIDATOR_HOME${NC}"
-    mkdir -p "$VALIDATOR_HOME/config"
+while getopts "s:o:c:u:f:b:nh" opt; do
+  case "$opt" in
+    s) SRC=$OPTARG ;;
+    o) DST=$OPTARG ;;
+    c) CHAIN_ID=$OPTARG ;;
+    u) UPGRADE=$OPTARG ;;
+    f) EXTRA_ACCOUNTS=$OPTARG ;;
+    b) NYXD=$OPTARG ;;
+    n) START=0 ;;
+    *) usage ;;
+  esac
+done
+[[ -n "$SRC" && -n "$DST" ]] || usage
+[[ -f "$SRC/config/genesis.json" && -d "$SRC/data" ]] || { echo "error: $SRC has no config/genesis.json or data/" >&2; exit 1; }
+[[ ! -e "$DST" ]] || { echo "error: $DST already exists" >&2; exit 1; }
+command -v "$NYXD" >/dev/null || { echo "error: $NYXD not found" >&2; exit 1; }
+
+if [[ -f "$SRC/data/application.db/LOCK" ]] && command -v lsof >/dev/null && lsof +D "$SRC/data/application.db" >/dev/null 2>&1; then
+  echo "error: a process still has $SRC/data open; stop the node first" >&2
+  exit 1
 fi
 
-# Create or use existing priv_validator_key.json
-if [ ! -f "$VALIDATOR_HOME/config/priv_validator_key.json" ]; then
-    echo -e "${GREEN}Generating new validator key...${NC}"
-    nyxd init "$VALIDATOR_NAME" --home "$VALIDATOR_HOME" >/dev/null 2>&1
-    
-    # Copy only the necessary files if we have a data directory
-    if [ -d "$NODE_HOME/config" ]; then
-        echo -e "${GREEN}Copying chain configuration...${NC}"
-        cp "$NODE_HOME/config/genesis.json" "$VALIDATOR_HOME/config/" 2>/dev/null || true
-        cp "$NODE_HOME/config/client.toml" "$VALIDATOR_HOME/config/" 2>/dev/null || true
-        cp "$NODE_HOME/config/app.toml" "$VALIDATOR_HOME/config/" 2>/dev/null || true
-        cp "$NODE_HOME/config/config.toml" "$VALIDATOR_HOME/config/" 2>/dev/null || true
-    fi
+echo "==> initialising $DST (fresh node and validator keys)"
+"$NYXD" init fork-validator --chain-id "$CHAIN_ID" --home "$DST" >/dev/null 2>&1
+cp "$SRC/config/genesis.json" "$DST/config/genesis.json"
+
+echo "==> copying chain data from $SRC"
+# keep the fresh priv_validator_state.json: the fork signs with a new key
+rsync -a --exclude priv_validator_state.json "$SRC/data/" "$DST/data/"
+if [[ -d "$SRC/wasm" ]]; then
+  rsync -a "$SRC/wasm/" "$DST/wasm/"
 fi
 
-# Get the validator private key
-echo -e "${GREEN}Extracting validator private key...${NC}"
-PRIV_KEY=$(cat "$VALIDATOR_HOME/config/priv_validator_key.json" | base64)
+echo "==> isolating the fork from the source network"
+"$NYXD" config set config p2p.seeds "" --home "$DST" >/dev/null
+"$NYXD" config set config p2p.persistent_peers "" --home "$DST" >/dev/null
+"$NYXD" config set config p2p.pex false --home "$DST" >/dev/null
+"$NYXD" config set config statesync.enable false --home "$DST" >/dev/null
+"$NYXD" config set app api.enable true --home "$DST" >/dev/null
+"$NYXD" config set client chain-id "$CHAIN_ID" --home "$DST" >/dev/null
+"$NYXD" config set client keyring-backend test --home "$DST" >/dev/null
 
-# Create validator key if it doesn't exist
-echo -e "${GREEN}Creating validator key...${NC}"
-VALIDATOR_KEY=$(nyxd keys show "$VALIDATOR_NAME" --keyring-backend test --home "$VALIDATOR_HOME" --output json 2>/dev/null || \
-    nyxd keys add "$VALIDATOR_NAME" --keyring-backend test --home "$VALIDATOR_HOME" --output json)
+echo "==> creating the operator account (test keyring in $DST)"
+"$NYXD" keys add operator --keyring-backend test --home "$DST" --output json > "$DST/operator-key.json" 2>&1
+OPERATOR=$("$NYXD" keys show operator -a --keyring-backend test --home "$DST")
+VALOPER=$("$NYXD" keys show operator -a --bech val --keyring-backend test --home "$DST")
+FUND="$OPERATOR${EXTRA_ACCOUNTS:+,$EXTRA_ACCOUNTS}"
 
-VALIDATOR_ADDRESS=$(echo "$VALIDATOR_KEY" | jq -r .address)
-VALIDATOR_VALOPER=$(nyxd keys show "$VALIDATOR_NAME" --keyring-backend test --home "$VALIDATOR_HOME" --bech val -a)
+ARGS=(in-place-testnet "$CHAIN_ID" "$VALOPER" --home "$DST" --skip-confirmation
+  --accounts-to-fund "$FUND" --voting-period 60s --expedited-voting-period 30s)
+[[ -n "$UPGRADE" ]] && ARGS+=(--trigger-testnet-upgrade "$UPGRADE")
 
-echo -e "${GREEN}Validator Address:${NC} $VALIDATOR_ADDRESS"
-echo -e "${GREEN}Validator Operator Address:${NC} $VALIDATOR_VALOPER"
-
-# Create test accounts if they don't exist
-echo -e "${GREEN}Creating test accounts...${NC}"
-TEST_ACCOUNT_1=$(nyxd keys add test1 --keyring-backend test --home "$VALIDATOR_HOME" --output json 2>/dev/null || nyxd keys show test1 --keyring-backend test --home "$VALIDATOR_HOME" --output json)
-TEST_ACCOUNT_2=$(nyxd keys add test2 --keyring-backend test --home "$VALIDATOR_HOME" --output json 2>/dev/null || nyxd keys show test2 --keyring-backend test --home "$VALIDATOR_HOME" --output json)
-
-TEST_ADDR_1=$(echo "$TEST_ACCOUNT_1" | jq -r .address)
-TEST_ADDR_2=$(echo "$TEST_ACCOUNT_2" | jq -r .address)
-
-echo -e "${GREEN}Test Account 1:${NC} $TEST_ADDR_1"
-echo -e "${GREEN}Test Account 2:${NC} $TEST_ADDR_2"
-
-# Run in-place-testnet command
-echo -e "${GREEN}Running in-place-testnet...${NC}"
-nyxd in-place-testnet "$CHAIN_ID" "$VALIDATOR_VALOPER" \
-    --validator-privkey="$PRIV_KEY" \
-    --home "$VALIDATOR_HOME" \
-    --accounts-to-fund="$TEST_ADDR_1,$TEST_ADDR_2"
-
-echo -e "${GREEN}Testnet conversion complete!${NC}"
-echo -e "${GREEN}To start the testnet, run:${NC}"
-echo -e "nyxd start --home \"$VALIDATOR_HOME\""
-
-# Save information for future use
-cat << EOF > "$VALIDATOR_HOME/testnet_info.txt"
-Chain ID: $CHAIN_ID
-Validator Name: $VALIDATOR_NAME
-Validator Address: $VALIDATOR_ADDRESS
-Validator Operator Address: $VALIDATOR_VALOPER
-Test Account 1: $TEST_ADDR_1
-Test Account 2: $TEST_ADDR_2
-Private Key (base64): $PRIV_KEY
+cat > "$DST/fork-info.txt" <<EOF
+chain id:          $CHAIN_ID
+source home:       $SRC
+operator account:  $OPERATOR  (key "operator", keyring-backend test, mnemonic in operator-key.json)
+validator:         $VALOPER
+funded accounts:   $FUND
+triggered upgrade: ${UPGRADE:-none}
+command:           $NYXD ${ARGS[*]}
 EOF
+cat "$DST/fork-info.txt"
 
-echo -e "${GREEN}All information has been saved to:${NC} $VALIDATOR_HOME/testnet_info.txt"
+if [[ "$START" == 1 ]]; then
+  echo "==> starting the fork"
+  exec "$NYXD" "${ARGS[@]}"
+fi
