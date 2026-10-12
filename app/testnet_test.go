@@ -52,7 +52,10 @@ func TestInitAppForTestnet(t *testing.T) {
 	// first testnet block: the triggered upgrade runs and CometBFT gets the
 	// new validator's real power
 	res := nextBlock(t, wasmApp)
+	// exactly one update, adding the new key: a zero-power update for a retired
+	// validator would make CometBFT halt ("failed to find validator to remove")
 	require.Len(t, res.ValidatorUpdates, 1)
+	require.Positive(t, res.ValidatorUpdates[0].Power)
 	cmtKey, err := cryptocodec.ToCmtProtoPublicKey(consKey)
 	require.NoError(t, err)
 	require.Equal(t, cmtKey, res.ValidatorUpdates[0].PubKey)
