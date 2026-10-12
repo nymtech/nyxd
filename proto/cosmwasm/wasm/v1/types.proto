@@ -94,6 +94,8 @@ message ContractInfo {
   google.protobuf.Any extension = 7
       [ (cosmos_proto.accepts_interface) =
             "cosmwasm.wasm.v1.ContractInfoExtension" ];
+
+  string ibc2_port_id = 8 [ (gogoproto.customname) = "IBC2PortID" ];
 }
 
 // ContractCodeHistoryOperationType actions that caused a code change

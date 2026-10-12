@@ -17,6 +17,7 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -271,10 +272,9 @@ func getCommandArgs(appOpts servertypes.AppOptions) (valArgs, error) {
 	}
 
 	// Convert SDK PubKey to Tendermint PubKey
-	sdkPubKey := privKey.PubKey()
-	tmPubKey, ok := sdkPubKey.(crypto.PubKey)
-	if !ok {
-		return args, fmt.Errorf("failed to convert SDK PubKey to Tendermint PubKey")
+	tmPubKey, err := cryptocodec.ToCmtPubKeyInterface(privKey.PubKey())
+	if err != nil {
+		return args, fmt.Errorf("failed to convert SDK PubKey to Tendermint PubKey: %w", err)
 	}
 
 	args.newValPubKey = tmPubKey

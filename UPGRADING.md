@@ -2,7 +2,7 @@
 
 With stargate, we have access to the `x/upgrade` module, which we can use to perform
 inline upgrades. Please first read both the basic 
-[x/upgrade spec](https://github.com/cosmos/cosmos-sdk/blob/master/x/upgrade/spec/01_concepts.md)
+[x/upgrade spec](https://github.com/cosmos/cosmos-sdk/blob/31fdee0228bd6f3e787489c8e4434aabc8facb7d/x/upgrade/spec/01_concepts.md)
 and [go docs](https://godoc.org/github.com/cosmos/cosmos-sdk/x/upgrade#hdr-Performing_Upgrades)
 for the background on the module.
 
@@ -38,7 +38,7 @@ start the specified v2 version on the next block.
 ### Prepare binaries
 
 Let's get the two binaries we want to test, the pre-upgrade and the post-upgrade
-binaries. In this case the pre-release is already a published to docker hub and
+binaries. In this case the pre-release is already published to docker hub and
 can be downloaded simply via:
 
 `docker pull cosmwasm/wasmd:v0.14.0`
@@ -174,7 +174,7 @@ you put in your handler):
 
 ```sh
 # create the proposal
-# check the current height and add 100-200 or so for the upgrade time
+# check the current height and add 100-200 or so for the upgrade 
 # (the voting period is ~60 blocks)
 docker run --rm -it \
     --mount type=volume,source=musselnet_client,target=/root \
@@ -238,7 +238,6 @@ docker run --rm -it \
    "authority": "wasm10d07y265gmmuvt4z0w9aw880jnsr700js7zslc",
    "plan": {
     "name": "Upgrade",
-    "time": "0001-01-01T00:00:00Z",
     "height": "500",
     "info": "",
     "upgraded_client_state": null

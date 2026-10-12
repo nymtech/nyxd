@@ -19,7 +19,9 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v10/modules/core/04-channel/types"
+	channeltypesv2 "github.com/cosmos/ibc-go/v10/modules/core/04-channel/v2/types"
 	host "github.com/cosmos/ibc-go/v10/modules/core/24-host"
+	hostv2 "github.com/cosmos/ibc-go/v10/modules/core/24-host/v2"
 	ibctesting "github.com/cosmos/ibc-go/v10/testing"
 	"github.com/stretchr/testify/require"
 
@@ -52,24 +54,54 @@ func (app WasmTestApp) GetTxConfig() client.TxConfig {
 	return app.TxConfig()
 }
 
+type PendingAckPacketV2 struct {
+	channeltypesv2.Packet
+	Ack []byte
+}
+
 type WasmTestChain struct {
 	*ibctesting.TestChain
 
-	PendingSendPackets *[]channeltypes.Packet
+	PendingSendPackets   *[]channeltypes.Packet
+	PendingSendPacketsV2 *[]channeltypesv2.Packet
 }
 
 func NewWasmTestChain(chain *ibctesting.TestChain) *WasmTestChain {
-	res := WasmTestChain{TestChain: chain, PendingSendPackets: &[]channeltypes.Packet{}}
+	res := WasmTestChain{TestChain: chain, PendingSendPackets: &[]channeltypes.Packet{}, PendingSendPacketsV2: &[]channeltypesv2.Packet{}}
 	res.SendMsgsOverride = res.OverrideSendMsgs
 	return &res
 }
 
-func (chain *WasmTestChain) CaptureIBCEvents(result *abci.ExecTxResult) {
-	toSend, _ := ibctesting.ParsePacketsFromEvents(channeltypes.EventTypeSendPacket, result.Events)
-	// require.NoError(chain, err)
+func (chain *WasmTestChain) CaptureIBCEventsV2(result *abci.ExecTxResult) {
+	toSend, err := ibctesting.ParseIBCV2Packets(channeltypesv2.EventTypeSendPacket, result.Events)
 	if len(toSend) > 0 {
+		require.NoError(chain, err)
 		// Keep a queue on the chain that we can relay in tests
-		*chain.PendingSendPackets = append(*chain.PendingSendPackets, toSend...)
+		*chain.PendingSendPacketsV2 = append(*chain.PendingSendPacketsV2, toSend...)
+	}
+}
+
+func (chain *WasmTestChain) CaptureIBCEvents(result *abci.ExecTxResult) {
+	toSend, _ := ibctesting.ParseIBCV1Packets(channeltypes.EventTypeSendPacket, result.Events)
+
+	// IBCv1 and IBCv2 `EventTypeSendPacket` are the same
+	// and the [`ParsePacketsFromEvents`] parses both of them as they were IBCv1
+	// so we have to filter them here.
+	//
+	// While parsing IBC2 events in IBC1 context the only overlapping event is the
+	// `AttributeKeyTimeoutTimestamp` so to determine if the wrong set of events was parsed
+	// we should be able to check if any other field in the packet is not set.
+	var toSendFiltered []channeltypes.Packet
+	for _, packet := range toSend {
+		if packet.SourcePort != "" {
+			toSendFiltered = append(toSendFiltered, packet)
+		}
+	}
+
+	// require.NoError(chain, err)
+	if len(toSendFiltered) > 0 {
+		// Keep a queue on the chain that we can relay in tests
+		*chain.PendingSendPackets = append(*chain.PendingSendPackets, toSendFiltered...)
 	}
 }
 
@@ -78,6 +110,7 @@ func (chain *WasmTestChain) OverrideSendMsgs(msgs ...sdk.Msg) (*abci.ExecTxResul
 	result, err := chain.SendMsgs(msgs...)
 	chain.SendMsgsOverride = chain.OverrideSendMsgs
 	chain.CaptureIBCEvents(result)
+	chain.CaptureIBCEventsV2(result)
 	return result, err
 }
 
@@ -174,7 +207,7 @@ func (chain *WasmTestChain) Fund(addr sdk.AccAddress, amount math.Int) {
 	require.NoError(chain.TB, err)
 }
 
-// GetTimeoutHeight is a convenience function which returns a IBC packet timeout height
+// GetTimeoutHeight is a convenience function which returns an IBC packet timeout height
 // to be used for testing. It returns the current IBC height + 100 blocks
 func (chain *WasmTestChain) GetTimeoutHeight() clienttypes.Height {
 	return clienttypes.NewHeight(clienttypes.ParseChainID(chain.ChainID), uint64(chain.GetContext().BlockHeight())+100)
@@ -211,7 +244,7 @@ func (chain *WasmTestChain) SendNonDefaultSenderMsgs(senderPrivKey cryptotypes.P
 // SmartQuery This will serialize the query message and submit it to the contract.
 // The response is parsed into the provided interface.
 // Usage: SmartQuery(addr, QueryMsg{Foo: 1}, &response)
-func (chain *WasmTestChain) SmartQuery(contractAddr string, queryMsg, response interface{}) error {
+func (chain *WasmTestChain) SmartQuery(contractAddr string, queryMsg, response any) error {
 	msg, err := json.Marshal(queryMsg)
 	if err != nil {
 		return err
@@ -246,55 +279,132 @@ func (chain *WasmTestChain) SmartQuery(contractAddr string, queryMsg, response i
 	return json.Unmarshal(resp.Data, response)
 }
 
-// RelayPacketWithoutAck attempts to relay the packet first on EndpointA and then on EndpointB
-// if EndpointA does not contain a packet commitment for that packet. An error is returned
-// if a relay step fails or the packet commitment does not exist on either endpoint.
-// In contrast to RelayPacket, this function does not acknowledge the packet and expects it to have no acknowledgement yet.
-// It is useful for testing async acknowledgement.
-func RelayPacketWithoutAck(path *ibctesting.Path, packet channeltypes.Packet) error {
-	pc := path.EndpointA.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointA.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	if bytes.Equal(pc, channeltypes.CommitPacket(packet)) {
-
-		// packet found, relay from A to B
-		if err := path.EndpointB.UpdateClient(); err != nil {
-			return err
-		}
-
-		res, err := path.EndpointB.RecvPacketWithResult(packet)
-		if err != nil {
-			return err
-		}
-
-		_, err = ParseAckFromEvents(res.GetEvents())
-		if err == nil {
-			return fmt.Errorf("tried to relay packet without ack but got ack")
-		}
-
-		return nil
+func RelayPacketWithoutAck(path *ibctesting.Path, packet channeltypes.Packet, dstEndpoint *ibctesting.Endpoint) error {
+	if err := dstEndpoint.UpdateClient(); err != nil {
+		return err
 	}
 
-	pc = path.EndpointB.Chain.App.GetIBCKeeper().ChannelKeeper.GetPacketCommitment(path.EndpointB.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	if bytes.Equal(pc, channeltypes.CommitPacket(packet)) {
-
-		// packet found, relay B to A
-		if err := path.EndpointA.UpdateClient(); err != nil {
-			return err
-		}
-
-		res, err := path.EndpointA.RecvPacketWithResult(packet)
-		if err != nil {
-			return err
-		}
-
-		_, err = ParseAckFromEvents(res.GetEvents())
-		if err == nil {
-			return fmt.Errorf("tried to relay packet without ack but got ack")
-		}
-
-		return nil
+	res, err := dstEndpoint.RecvPacketWithResult(packet)
+	if err != nil {
+		return err
 	}
 
-	return fmt.Errorf("packet commitment does not exist on either endpoint for provided packet")
+	_, err = ParseAckFromEvents(res.GetEvents())
+	if err == nil {
+		return fmt.Errorf("tried to relay packet without ack but got ack")
+	}
+
+	return nil
+}
+
+// MsgSendPacketV2 sends an IBC2 packet signed by the contract derived from SourcePort.
+func MsgSendPacketV2(chain *WasmTestChain, endpoint *ibctesting.Endpoint, timeoutTimestamp uint64, payload channeltypesv2.Payload) (channeltypesv2.Packet, error) {
+	contractAddr, err := wasmkeeper.ContractFromPortID2(payload.SourcePort)
+	if err != nil {
+		return channeltypesv2.Packet{}, err
+	}
+
+	msgSendPacket := channeltypesv2.NewMsgSendPacket(endpoint.ClientID, timeoutTimestamp, contractAddr.String(), payload)
+
+	handler := chain.GetWasmApp().MsgServiceRouter().Handler(msgSendPacket)
+	if handler == nil {
+		return channeltypesv2.Packet{}, fmt.Errorf("no handler for MsgSendPacket")
+	}
+
+	resp, err := handler(chain.GetContext(), msgSendPacket)
+	if err != nil {
+		return channeltypesv2.Packet{}, err
+	}
+
+	// Capture IBC events so the relay helpers can find pending packets.
+	txResult := &abci.ExecTxResult{Events: resp.Events}
+	chain.CaptureIBCEventsV2(txResult)
+	chain.CaptureIBCEvents(txResult)
+
+	// Advance the block to commit state.
+	chain.Coordinator.UpdateTimeForChain(chain.TestChain)
+	chain.NextBlock()
+	chain.Coordinator.IncrementTime()
+	if err := endpoint.Counterparty.UpdateClient(); err != nil {
+		return channeltypesv2.Packet{}, err
+	}
+
+	// Parse response to build the packet.
+	var sendResponse channeltypesv2.MsgSendPacketResponse
+	if err := proto.Unmarshal(resp.Data, &sendResponse); err != nil {
+		return channeltypesv2.Packet{}, fmt.Errorf("failed to unmarshal send response: %w", err)
+	}
+
+	return channeltypesv2.NewPacket(sendResponse.Sequence, endpoint.ClientID, endpoint.Counterparty.ClientID, timeoutTimestamp, payload), nil
+}
+
+func MsgRecvPacketWithResultV2(endpoint *ibctesting.Endpoint, packet channeltypesv2.Packet) (*abci.ExecTxResult, error) {
+	// get proof of packet commitment from chainA
+	packetKey := hostv2.PacketCommitmentKey(packet.SourceClient, packet.Sequence)
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	msg := channeltypesv2.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	res, err := endpoint.Chain.SendMsgs(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, endpoint.Counterparty.UpdateClient()
+}
+
+func RelayPacketV2(path *WasmPath, packet channeltypesv2.Packet, srcEndpoint, dstEndpoint *ibctesting.Endpoint, packetToAck *channeltypesv2.Packet) error {
+	if err := dstEndpoint.UpdateClient(); err != nil {
+		return err
+	}
+
+	res, err := MsgRecvPacketWithResultV2(dstEndpoint, packet)
+	if err != nil {
+		return err
+	}
+
+	ack, err := ParseAckFromEventsV2(res.GetEvents())
+	if err != nil {
+		return fmt.Errorf("no ack received")
+	}
+
+	var msg channeltypesv2.Acknowledgement
+	err = proto.Unmarshal(ack, &msg)
+	if err != nil {
+		return err
+	}
+
+	// packet found, relay ACK from dst to src
+	if err := srcEndpoint.UpdateClient(); err != nil {
+		return err
+	}
+
+	// Use the last sent packet as a one to be acknowledged
+	if packetToAck == nil {
+		packetToAck = &packet
+	}
+
+	path.chainA.Logf("sending ack to other chain")
+	err = srcEndpoint.MsgAcknowledgePacket(*packetToAck, msg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RelayPacketWithoutAckV2 attempts to relay the packet to the destination IBCv2 Endpoint.
+func RelayPacketWithoutAckV2(path *WasmPath, packet channeltypesv2.Packet, dstEndpoint *ibctesting.Endpoint) error {
+	if err := dstEndpoint.UpdateClient(); err != nil {
+		return err
+	}
+
+	err := dstEndpoint.MsgRecvPacket(packet)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type WasmPath struct {
@@ -338,6 +448,63 @@ func RelayAndAckPendingPackets(path *WasmPath) error {
 	return nil
 }
 
+// RelayPendingPacketsV2 sends pending packages from path.EndpointA to the counterparty chain.
+// It does not relay ACKs even if they appear.
+func RelayPendingPacketsV2(path *WasmPath) error {
+	// get all the packet to relay src->dest
+	src := path.EndpointA
+	require.NoError(path.chainA, src.UpdateClient())
+	path.chainA.Logf("Relay: %d PacketsV2 A->B, %d PacketsV2 B->A\n", len(*path.chainA.PendingSendPacketsV2), len(*path.chainB.PendingSendPacketsV2))
+	for _, v := range *path.chainA.PendingSendPacketsV2 {
+		err := RelayPacketWithoutAckV2(path, v, path.EndpointB)
+		if err != nil {
+			return err
+		}
+
+		*path.chainA.PendingSendPacketsV2 = (*path.chainA.PendingSendPacketsV2)[1:]
+	}
+
+	src = path.EndpointB
+	require.NoError(path.chainB, src.UpdateClient())
+	for _, v := range *path.chainB.PendingSendPacketsV2 {
+		err := RelayPacketWithoutAckV2(path, v, path.EndpointA)
+		if err != nil {
+			return err
+		}
+
+		*path.chainB.PendingSendPacketsV2 = (*path.chainB.PendingSendPacketsV2)[1:]
+	}
+	return nil
+}
+
+// RelayPendingPacketsWithAcksV2 sends pending packages between path.EndpointA and path.EndpointB along with ACKs
+func RelayPendingPacketsWithAcksV2(path *WasmPath) error {
+	// get all the packet to relay src->dest
+	src := path.EndpointA
+	require.NoError(path.chainA, src.UpdateClient())
+	path.chainA.Logf("Relay: %d PacketsV2 A->B, %d PacketsV2 B->A\n", len(*path.chainA.PendingSendPacketsV2), len(*path.chainB.PendingSendPacketsV2))
+	for _, v := range *path.chainA.PendingSendPacketsV2 {
+		err := RelayPacketV2(path, v, path.EndpointA, path.EndpointB, nil)
+		if err != nil {
+			return err
+		}
+
+		*path.chainA.PendingSendPacketsV2 = (*path.chainA.PendingSendPacketsV2)[1:]
+	}
+
+	src = path.EndpointB
+	require.NoError(path.chainB, src.UpdateClient())
+	for _, v := range *path.chainB.PendingSendPacketsV2 {
+		err := RelayPacketV2(path, v, path.EndpointB, path.EndpointA, nil)
+		if err != nil {
+			return err
+		}
+
+		*path.chainB.PendingSendPacketsV2 = (*path.chainB.PendingSendPacketsV2)[1:]
+	}
+	return nil
+}
+
 // TimeoutPendingPackets returns the package to source chain to let the IBC app revert any operation.
 // from A to B
 func TimeoutPendingPackets(coord *ibctesting.Coordinator, path *WasmPath) error {
@@ -356,6 +523,34 @@ func TimeoutPendingPackets(coord *ibctesting.Coordinator, path *WasmPath) error 
 		packetKey := host.PacketReceiptKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		proofUnreceived, proofHeight := dest.QueryProof(packetKey)
 		timeoutMsg := channeltypes.NewMsgTimeout(packet, packet.Sequence, proofUnreceived, proofHeight, src.Chain.SenderAccount.GetAddress().String())
+		_, err := path.chainA.SendMsgs(timeoutMsg)
+		if err != nil {
+			return err
+		}
+	}
+	*path.chainA.PendingSendPackets = []channeltypes.Packet{}
+	return nil
+}
+
+// TimeoutPendingPacketsV2 returns the package to source chain to let the IBCv2 app revert any operation.
+// from A to B
+func TimeoutPendingPacketsV2(coord *ibctesting.Coordinator, path *WasmPath) error {
+	src := path.EndpointA
+	dest := path.EndpointB
+
+	toSend := path.chainA.PendingSendPacketsV2
+	coord.Logf("Timeout %d Packets A->B\n", len(*toSend))
+	require.NoError(coord, src.UpdateClient())
+
+	// Increment time and commit block so that 1 minute delay period passes between send and receive
+	coord.IncrementTimeBy(time.Minute)
+	err := path.EndpointA.UpdateClient()
+	require.NoError(coord, err)
+	for _, packet := range *toSend {
+		// get proof of packet unreceived on dest
+		packetKey := hostv2.PacketReceiptKey(packet.GetDestinationClient(), packet.GetSequence())
+		proofUnreceived, proofHeight := dest.QueryProof(packetKey)
+		timeoutMsg := channeltypesv2.NewMsgTimeout(packet, proofUnreceived, proofHeight, src.Chain.SenderAccount.GetAddress().String())
 		_, err := path.chainA.SendMsgs(timeoutMsg)
 		if err != nil {
 			return err
@@ -508,6 +703,25 @@ func ParseAckFromEvents(events []abci.Event) ([]byte, error) {
 		if ev.Type == channeltypes.EventTypeWriteAck {
 			for _, attr := range ev.Attributes {
 				if attr.Key == channeltypes.AttributeKeyAckHex {
+					bz, err := hex.DecodeString(attr.Value)
+					if err != nil {
+						panic(err)
+					}
+					return bz, nil
+				}
+			}
+		}
+	}
+	return nil, fmt.Errorf("acknowledgement event attribute not found")
+}
+
+// ParseAckFromEventsV2 parses events emitted from a MsgRecvPacket and returns the
+// acknowledgement.
+func ParseAckFromEventsV2(events []abci.Event) ([]byte, error) {
+	for _, ev := range events {
+		if ev.Type == channeltypes.EventTypeWriteAck {
+			for _, attr := range ev.Attributes {
+				if attr.Key == channeltypesv2.AttributeKeyEncodedAckHex {
 					bz, err := hex.DecodeString(attr.Value)
 					if err != nil {
 						panic(err)

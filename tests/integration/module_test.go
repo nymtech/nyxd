@@ -66,7 +66,7 @@ func setupTest(t *testing.T) testData {
 
 	ctx, keepers := keeper.CreateTestInput(t, false, []string{
 		"iterator", "staking", "stargate", "cosmwasm_1_1", "cosmwasm_1_2", "cosmwasm_1_3",
-		"cosmwasm_1_4", "cosmwasm_2_0", "cosmwasm_2_1", "cosmwasm_2_2",
+		"cosmwasm_1_4", "cosmwasm_2_0", "cosmwasm_2_1", "cosmwasm_2_2", "ibc2",
 	})
 	encConf := keeper.MakeEncodingConfig(t)
 	queryRouter := baseapp.NewGRPCQueryRouter()
@@ -167,7 +167,6 @@ func TestHandleCreate(t *testing.T) {
 	}
 
 	for name, tc := range cases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			data := setupTest(t)
 
@@ -410,7 +409,7 @@ func TestHandleExecuteEscrow(t *testing.T) {
 	require.NoError(t, err)
 
 	bob := keyPubAddr()
-	initMsg := map[string]interface{}{
+	initMsg := map[string]any{
 		"verifier":    fred.String(),
 		"beneficiary": bob.String(),
 	}
@@ -430,8 +429,8 @@ func TestHandleExecuteEscrow(t *testing.T) {
 	contractBech32Addr := parseInitResponse(t, res.Data)
 	require.Equal(t, "cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr", contractBech32Addr)
 
-	handleMsg := map[string]interface{}{
-		"release": map[string]interface{}{},
+	handleMsg := map[string]any{
+		"release": map[string]any{},
 	}
 	handleMsgBz, err := json.Marshal(handleMsg)
 	require.NoError(t, err)
@@ -534,9 +533,9 @@ func TestReadNodeConfig(t *testing.T) {
 	}
 }
 
-type AppOptionsMock map[string]interface{}
+type AppOptionsMock map[string]any
 
-func (a AppOptionsMock) Get(s string) interface{} {
+func (a AppOptionsMock) Get(s string) any {
 	return a[s]
 }
 

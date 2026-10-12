@@ -4,16 +4,16 @@
 
 If you want to use Wasm in your own app, here is how you can get this working
 quickly and easily. 
-First start with this [article](https://medium.com/cosmwasm/cosmwasm-for-ctos-iv-native-integrations-713140bf75fc) 
+First start with this [article](https://medium.com/cosmwasm/cosmwasm-for-ctos-iv-native-integrations-713140bf75fc)
 in the "CosmWasm for CTOs" series that gives you a high level view. 
-Then check to make sure you fit the pre-requisites,
+Then check to make sure you fit the prerequisites,
 then integrate the `x/wasm` module as described below, and finally, you
 can add custom messages and queries to your custom Go/SDK modules, exposing
 them to any chain-specific contract.
 
 ## Prerequisites
 
-The pre-requisites of integrating `x/wasm` into your custom app is to be using 
+The prerequisites of integrating `x/wasm` into your custom app are to be using 
 a compatible version of the Cosmos SDK, and to accept some limits to the
 hardware it runs on.
 
@@ -42,8 +42,8 @@ hardware it runs on.
 
 We currently only support Intel/AMD64 CPUs and OSX or Linux. For Linux, the standard build
 commands work for `glibc` systems (Ubuntu, Debian, CentOS, etc). If you wish to compile
-for a `muslc` based system (like Alpine), you need to compile the static library `wasmvm` locally
-and compile go with the `muslc` build tag. Or just use the [Dockerfile](./Dockerfile),
+for a `musl` based system (like Alpine), you need to compile the static library `wasmvm` locally
+and compile go with the `musl` build tag. Or just use the [Dockerfile](./Dockerfile),
 which builds a static go binary in an Alpine system.
 
 This limit comes from the Rust dll we use to run the wasm code, which comes 
