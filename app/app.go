@@ -966,19 +966,10 @@ func NewWasmApp(
 			panic(fmt.Sprintf("failed initialize pinned codes %s", err))
 		}
 
-		// Initialize mint module state if needed
-		if _, err := app.MintKeeper.Minter.Get(ctx); err != nil {
-			if err := app.MintKeeper.Minter.Set(ctx, minttypes.DefaultInitialMinter()); err != nil {
-				panic(fmt.Sprintf("failed to set mint minter: %s", err))
-			}
-		}
-		if _, err := app.MintKeeper.Params.Get(ctx); err != nil {
-			params := minttypes.DefaultParams()
-			params.MintDenom = "unyx"
-			if err := app.MintKeeper.Params.Set(ctx, params); err != nil {
-				panic(fmt.Sprintf("failed to set mint params: %s", err))
-			}
-		}
+		// Do not write to any KV store here. On a fresh node this runs before
+		// statesync, and a dirty IAVL tree makes the snapshot import fail with
+		// "tree must be empty". Default state belongs in InitChainer or an
+		// upgrade handler.
 	}
 
 	return app
