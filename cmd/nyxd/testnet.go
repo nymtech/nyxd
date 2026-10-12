@@ -46,10 +46,11 @@ fresh priv_validator_key.json. The first block can take a while to commit. Wait
 for it before stopping the node; afterwards restart it with the normal start
 command. Running in-place-testnet twice on the same data dir is not supported.
 
---trigger-testnet-upgrade runs the named upgrade handler on the first block. It
-is required when the binary is newer than the state, e.g. forking pre-upgrade
-mainnet state with the binary that carries the next upgrade; without it the
-upgrade module refuses to start because the last applied upgrade has no handler.`
+--trigger-testnet-upgrade runs the named upgrade handler on the first block, which
+is how to rehearse an upgrade against real state. It is required when the binary
+is one upgrade ahead of the copied state and that state has applied an upgrade
+before (mainnet: v0.60): the binary only registers the newest handler, and the
+upgrade module refuses to start when the last applied plan has no handler.`
 
 	cmd.Example = `nyxd in-place-testnet nyx-fork-1 nvaloper1... --home ./fork --skip-confirmation \
   --accounts-to-fund="n1aaa...,n1bbb..." --voting-period=60s --expedited-voting-period=30s \

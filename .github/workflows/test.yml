@@ -1,0 +1,27 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "release/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.9"
+
+      - name: Vet
+        run: go vet -ldflags=-checklinkname=0 ./...
+
+      # app: statesync into a fresh node, testnet fork invariants, upgrade wiring.
+      # tests/e2e is left out: it reads contract fixtures from the upstream
+      # x/wasm tree, which this repo does not vendor.
+      - name: Test
+        run: go test -mod=readonly -ldflags=-checklinkname=0 ./app/... ./tests/integration/...

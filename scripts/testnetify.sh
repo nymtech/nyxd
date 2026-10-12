@@ -10,7 +10,8 @@
 #   -o DIR   home to create for the fork (must not exist)
 #   -c ID    chain id of the fork (default: nyx-fork-1)
 #   -u NAME  upgrade to run on the first block, e.g. v0.61; required when the
-#            binary is one upgrade ahead of the copied state
+#            binary is one upgrade ahead of the copied state (e.g. forking
+#            mainnet before v0.61 with the v0.61 binary)
 #   -f ADDRS comma-separated extra accounts to fund
 #   -b BIN   nyxd binary (default: nyxd on PATH)
 #   -n       prepare the fork but do not start it
@@ -64,10 +65,10 @@ if [[ -d "$SRC/wasm" ]]; then
 fi
 
 echo "==> isolating the fork from the source network"
-"$NYXD" config set config p2p.seeds "" --home "$DST" >/dev/null
-"$NYXD" config set config p2p.persistent_peers "" --home "$DST" >/dev/null
-"$NYXD" config set config p2p.pex false --home "$DST" >/dev/null
-"$NYXD" config set config statesync.enable false --home "$DST" >/dev/null
+"$NYXD" config set config p2p.seeds "" -s --home "$DST" >/dev/null
+"$NYXD" config set config p2p.persistent_peers "" -s --home "$DST" >/dev/null
+"$NYXD" config set config p2p.pex false -s --home "$DST" >/dev/null
+"$NYXD" config set config statesync.enable false -s --home "$DST" >/dev/null
 "$NYXD" config set app api.enable true --home "$DST" >/dev/null
 "$NYXD" config set client chain-id "$CHAIN_ID" --home "$DST" >/dev/null
 "$NYXD" config set client keyring-backend test --home "$DST" >/dev/null
