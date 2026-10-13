@@ -29,6 +29,8 @@ func (app *WasmApp) RegisterUpgradeHandlers(appOpts servertypes.AppOptions) {
 		IBCKeeper:             app.IBCKeeper,
 		Codec:                 app.appCodec,
 		GetStoreKey:           app.GetKey,
+		AuthzKeeper:           &app.AuthzKeeper,
+		WasmKeeper:            &app.WasmKeeper,
 	}
 	app.GetStoreKeys()
 	// register all upgrade handlers

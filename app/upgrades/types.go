@@ -11,9 +11,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
+
+	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 )
 
 type AppKeepers struct {
@@ -24,6 +27,8 @@ type AppKeepers struct {
 	IBCKeeper             *ibckeeper.Keeper
 	CrisisKeeper          *crisiskeeper.Keeper
 	GovKeeper             *govkeeper.Keeper
+	AuthzKeeper           *authzkeeper.Keeper
+	WasmKeeper            *wasmkeeper.Keeper
 }
 type ModuleManager interface {
 	RunMigrations(ctx context.Context, cfg module.Configurator, fromVM module.VersionMap) (module.VersionMap, error)
