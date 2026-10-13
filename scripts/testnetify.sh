@@ -48,8 +48,11 @@ done
 [[ ! -e "$DST" ]] || { echo "error: $DST already exists" >&2; exit 1; }
 command -v "$NYXD" >/dev/null || { echo "error: $NYXD not found" >&2; exit 1; }
 
-if [[ -f "$SRC/data/application.db/LOCK" ]] && command -v lsof >/dev/null && lsof +D "$SRC/data/application.db" >/dev/null 2>&1; then
-  echo "error: a process still has $SRC/data open; stop the node first" >&2
+# a running node holds LevelDB's LOCK file open read-write; read-only handles
+# (e.g. Docker Desktop's file sharing after a container exits) are harmless
+if [[ -f "$SRC/data/application.db/LOCK" ]] && command -v lsof >/dev/null &&
+  lsof -F a "$SRC/data/application.db/LOCK" 2>/dev/null | grep -qE '^a[uw]'; then
+  echo "error: a process still has $SRC/data/application.db open for writing; stop the node first" >&2
   exit 1
 fi
 
@@ -58,8 +61,10 @@ echo "==> initialising $DST (fresh node and validator keys)"
 cp "$SRC/config/genesis.json" "$DST/config/genesis.json"
 
 echo "==> copying chain data from $SRC"
-# keep the fresh priv_validator_state.json: the fork signs with a new key
-rsync -a --exclude priv_validator_state.json "$SRC/data/" "$DST/data/"
+# keep the fresh priv_validator_state.json: the fork signs with a new key.
+# skip the consensus WAL: it holds the source network's in-flight votes, which
+# the fork would replay on start
+rsync -a --exclude priv_validator_state.json --exclude cs.wal "$SRC/data/" "$DST/data/"
 if [[ -d "$SRC/wasm" ]]; then
   rsync -a "$SRC/wasm/" "$DST/wasm/"
 fi
